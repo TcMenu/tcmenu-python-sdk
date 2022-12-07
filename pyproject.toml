@@ -1,0 +1,18 @@
+[tool.black]
+target-version = ["py310"]
+line-length = 120
+
+[tool.pytest.ini_options]
+log_cli = true
+log_cli_level = "INFO"
+
+[tool.coverage.run]
+omit = [
+    "*/__init__.py",
+    "*setup.py",
+]
+[tool.coverage.report]
+exclude_lines = [
+    "if __name__ == \"__main__\":",
+    "pass"
+]
