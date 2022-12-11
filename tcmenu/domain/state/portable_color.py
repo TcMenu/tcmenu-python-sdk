@@ -1,3 +1,4 @@
+from __future__ import annotations
 from dataclasses import dataclass
 
 
@@ -14,7 +15,7 @@ class PortableColor:
     alpha: int = 255
 
     @staticmethod
-    def from_html(html_code: str):
+    def from_html(html_code: str) -> PortableColor:
         """
         Create a color object from a web color code such as #FFFFFF
         :param: html_code the html code
@@ -37,5 +38,5 @@ class PortableColor:
         else:
             return PortableColor(red=0, green=0, blue=0, alpha=255)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"#{self.red:02X}{self.green:02X}{self.blue:02X}{self.alpha:02X}"

@@ -1,3 +1,4 @@
+from __future__ import annotations
 from dataclasses import dataclass
 
 
@@ -11,7 +12,7 @@ class CurrentScrollPosition:
     value: str
 
     @staticmethod
-    def from_text(text: str):
+    def from_text(text: str) -> CurrentScrollPosition:
         """
         Create from a textual representation in the form, position-value, EG 1-Pizza
         :param: text the text form of the object to parse
@@ -32,5 +33,5 @@ class CurrentScrollPosition:
 
         return CurrentScrollPosition(position, value)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.position}-{self.value}"
