@@ -47,7 +47,7 @@ class BigDecimalMenuState(MenuState):
     Generally it's best to work with state via tcmenu.domain.util.MenuItemHelper.
     """
 
-    storage_type = MenuState.StateStorageType.BIG_DECIMAL
+    storage_type: MenuState.StateStorageType = MenuState.StateStorageType.BIG_DECIMAL
 
 
 @dataclass
@@ -57,7 +57,7 @@ class BooleanMenuState(MenuState):
     Generally it's best to work with state via tcmenu.domain.util.MenuItemHelper.
     """
 
-    storage_type = MenuState.StateStorageType.BOOLEAN
+    storage_type: MenuState.StateStorageType = MenuState.StateStorageType.BOOLEAN
 
 
 @dataclass
@@ -67,7 +67,7 @@ class CurrentScrollPositionMenuState(MenuState):
     Generally it's best to work with state via tcmenu.domain.util.MenuItemHelper.
     """
 
-    storage_type = MenuState.StateStorageType.SCROLL_POSITION
+    storage_type: MenuState.StateStorageType = MenuState.StateStorageType.SCROLL_POSITION
 
 
 @dataclass
@@ -77,7 +77,7 @@ class FloatMenuState(MenuState):
     Generally it's best to work with state via tcmenu.domain.util.MenuItemHelper.
     """
 
-    storage_type = MenuState.StateStorageType.FLOAT
+    storage_type: MenuState.StateStorageType = MenuState.StateStorageType.FLOAT
 
 
 @dataclass
@@ -87,7 +87,7 @@ class IntegerMenuState(MenuState):
     Generally it's best to work with state via tcmenu.domain.util.MenuItemHelper.
     """
 
-    storage_type = MenuState.StateStorageType.INTEGER
+    storage_type: MenuState.StateStorageType = MenuState.StateStorageType.INTEGER
 
 
 @dataclass
@@ -97,7 +97,7 @@ class PortableColorMenuState(MenuState):
     Generally it's best to work with state via tcmenu.domain.util.MenuItemHelper.
     """
 
-    storage_type = MenuState.StateStorageType.PORTABLE_COLOR
+    storage_type: MenuState.StateStorageType = MenuState.StateStorageType.PORTABLE_COLOR
 
 
 @dataclass
@@ -107,7 +107,7 @@ class StringListMenuState(MenuState):
     Generally it's best to work with state via tcmenu.domain.util.MenuItemHelper.
     """
 
-    storage_type = MenuState.StateStorageType.STRING_LIST
+    storage_type: MenuState.StateStorageType = MenuState.StateStorageType.STRING_LIST
 
 
 @dataclass
@@ -117,4 +117,4 @@ class StringMenuState(MenuState):
     Generally it's best to work with state via tcmenu.domain.util.MenuItemHelper.
     """
 
-    storage_type = MenuState.StateStorageType.STRING
+    storage_type: MenuState.StateStorageType = MenuState.StateStorageType.STRING

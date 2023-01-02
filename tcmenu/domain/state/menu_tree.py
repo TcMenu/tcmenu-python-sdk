@@ -3,6 +3,7 @@ from typing import Optional
 
 from tcmenu.domain.menu_items import SubMenuItem, MenuItem
 from tcmenu.domain.state.menu_state import MenuState
+from tcmenu.domain.util.menu_item_helper import MenuItemHelper
 
 
 class MenuTree:
@@ -52,7 +53,12 @@ class MenuTree:
         :param: item the item to be added.
         :param: parent the submenu where this should appear.
         """
-        pass
+        if parent not in self._sub_menu_items:
+            self._sub_menu_items[parent] = []
+        self._sub_menu_items[parent].append(item)
+
+        if item.has_children():
+            self._sub_menu_items[item] = []
 
     def add_or_update_item(self, item: MenuItem, parent_id: int):
         """
@@ -97,21 +103,40 @@ class MenuTree:
         """
         pass
 
-    def find_parent(self, to_find: MenuItem) -> SubMenuItem:
+    def find_parent(self, to_find: MenuItem) -> Optional[SubMenuItem]:
         """
         Finds the submenu that the provided object belongs to.
         :param: to_find the object to find sub menu for.
         :return: the submenu.
         """
-        pass
+        parent = None
+        for (menu_item, sub_menu_items) in self._sub_menu_items.items():
+            for item in sub_menu_items:
+                if item.id == to_find.id:
+                    parent = MenuItemHelper.as_sub_menu(menu_item)
 
-    def remove_menu_item(self, item: MenuItem, parent: Optional[SubMenuItem] = None):
+        return parent
+
+    def remove_menu_item(self, item: MenuItem, parent: Optional[SubMenuItem]):
         """
         Remove the menu item for the provided menu item in the provided sub menu.
         :param: item the item to remove (Search By ID).
         :param: parent the submenu to search.
         """
-        pass
+        if parent is None:
+            parent = self.find_parent(item)
+
+        sub_menu_children: [MenuItem] = self._sub_menu_items.get(parent)
+
+        for child in sub_menu_children:
+            if child.id == item.id:
+                sub_menu_children.remove(child)
+                break
+
+        if item.has_children():
+            self._sub_menu_items.pop(item)
+
+        self._menu_states.pop(item.id, None)
 
     def get_all_sub_menus(self) -> set[MenuItem]:
         """
@@ -120,13 +145,13 @@ class MenuTree:
         """
         pass
 
-    def get_menu_items(self, item: MenuItem) -> list[MenuItem]:
+    def get_menu_items(self, item: MenuItem) -> Optional[list[MenuItem]]:
         """
         Get a list of all menu items for a given submenu.
         :param: item the submenu to use.
         :return: a list of submenu items.
         """
-        pass
+        return self._sub_menu_items.get(item)
 
     def get_all_menu_items(self) -> set[MenuItem]:
         """
@@ -156,16 +181,16 @@ class MenuTree:
         :param: item the item to change.
         :param: menu_state the new state.
         """
-        pass
+        self._menu_states[item.id] = menu_state
 
-    def get_menu_state(self, item: MenuItem) -> MenuState:
+    def get_menu_state(self, item: MenuItem) -> Optional[MenuState]:
         """
         Gets the menu state that's associated with a given menu item. This is the
         current value for the menu item.
         :param: item the item which the state belongs to.
         :return: the state for the given menu item.
         """
-        pass
+        return self._menu_states.get(item.id)
 
     def recurse_tree_iterating_on_items(self, root: SubMenuItem, consumer):
         """

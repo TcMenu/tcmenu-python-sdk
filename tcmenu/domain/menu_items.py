@@ -48,10 +48,6 @@ class MenuItem:
         """
         return False
 
-    def accept(self, visitor):
-        # TODO: Add type
-        visitor.visit(self)
-
 
 @dataclass(frozen=True)
 class ActionMenuItem(MenuItem):
