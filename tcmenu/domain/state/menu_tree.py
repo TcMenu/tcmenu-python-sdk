@@ -66,7 +66,12 @@ class MenuTree:
         :param: item the item to either add or update.
         :param: parent_id the parent where it should be placed / already exists.
         """
-        pass
+        sub_menu = self.get_sub_menu_by_id(parent_id)
+        if sub_menu is not None:
+            if next(filter(lambda menu: menu.id == item.id, self.get_menu_items(sub_menu)), None):
+                self.replace_menu_by_id(sub_menu=MenuItemHelper.as_sub_menu(sub_menu), to_replace=item)
+            else:
+                self.add_menu_item(parent=MenuItemHelper.as_sub_menu(sub_menu), item=item)
 
     def get_sub_menu_by_id(self, parent_id: int) -> Optional[SubMenuItem]:
         """
@@ -74,7 +79,7 @@ class MenuTree:
         :param: parent_id the parent to obtain.
         :return: an optional that will be populated when present with the sub menu.
         """
-        pass
+        return next(filter(lambda sub_menu: sub_menu.id == parent_id, self.get_all_sub_menus()), None)
 
     def get_menu_by_id(self, menu_id: int) -> Optional[MenuItem]:
         """
@@ -83,16 +88,49 @@ class MenuTree:
         :param: menu_id the id of the object to find.
         :return: the menu at the given id
         """
-        pass
+        state = self._menu_states.get(menu_id)
+        if state is not None:
+            return state.item
 
-    def replace_menu_by_id(self, to_replace: MenuItem, sub_menu: Optional[SubMenuItem] = None):
+        # Shortcut to find the submenu by ID if possible before going through everything.
+        maybe_sub_menu = next(filter(lambda menu: menu.id == menu_id, self.get_all_sub_menus()), None)
+        if maybe_sub_menu is not None:
+            return maybe_sub_menu
+
+        return next(filter(lambda menu: menu.id == menu_id, self.get_all_menu_items()), None)
+
+    def replace_menu_by_id(self, to_replace: MenuItem, sub_menu: SubMenuItem = None):
         """
         Replace the menu item that has a given parent with the one provided. This is an infrequent
         operation and therefore not optimized. If you don't specify a parent, we will look it up.
         :param: to_replace the menu item to replace by ID.
         :param: sub_menu the parent.
         """
-        pass
+        if sub_menu is None:
+            sub_menu = self.find_parent(to_replace)
+
+        idx = None
+        for (i, item) in enumerate(self._sub_menu_items[sub_menu]):
+            if item.id == to_replace.id:
+                idx = i
+                break
+
+        if idx is not None:
+            # We found the original, so we now change that index to the new entry
+            old_item: MenuItem = self._sub_menu_items[sub_menu][idx].id
+            self._sub_menu_items[sub_menu][idx] = to_replace
+
+            # Now we update the "state" which also acts like a cache of menu items for lookup
+            old_state = self._menu_states.get(to_replace.id)
+            if old_state is not None:
+                self._menu_states[to_replace.id] = MenuItemHelper.modify_existing_state_for_menu_item(
+                    old_state, to_replace, old_state.value
+                )
+
+            # Lastly if the item was a submenu, we need change the top level submenu list as well.
+            if to_replace.has_children():
+                items = self._sub_menu_items.pop(old_item)
+                self._sub_menu_items[to_replace] = items
 
     def move_item(self, parent: SubMenuItem, new_item: MenuItem, move_type: MoveType):
         """
@@ -101,7 +139,27 @@ class MenuTree:
         :param: new_item the item to move.
         :param: move_type the direction of the move.
         """
-        pass
+        items: [MenuItem] = self._sub_menu_items[parent]
+
+        try:
+            idx = items.index(new_item)
+        except ValueError:
+            return
+
+        items.pop(idx)
+
+        if move_type == MenuTree.MoveType.MOVE_UP:
+            idx -= 1
+        else:
+            idx += 1
+
+        if idx < 0:
+            idx = 0
+
+        if idx > len(items):
+            items.append(new_item)
+        else:
+            items.insert(idx, new_item)
 
     def find_parent(self, to_find: MenuItem) -> Optional[SubMenuItem]:
         """
@@ -117,7 +175,7 @@ class MenuTree:
 
         return parent
 
-    def remove_menu_item(self, item: MenuItem, parent: Optional[SubMenuItem]):
+    def remove_menu_item(self, item: MenuItem, parent: Optional[SubMenuItem] = None):
         """
         Remove the menu item for the provided menu item in the provided sub menu.
         :param: item the item to remove (Search By ID).
@@ -143,24 +201,37 @@ class MenuTree:
         Returns all the submenus that are currently stored.
         :return: all available sub menus.
         """
-        pass
+        return set(self._sub_menu_items.keys())
 
-    def get_menu_items(self, item: MenuItem) -> Optional[list[MenuItem]]:
+    def get_menu_items(self, item: MenuItem) -> Optional[tuple[MenuItem]]:
         """
-        Get a list of all menu items for a given submenu.
+        Get a tuple of all menu items for a given submenu.
         :param: item the submenu to use.
-        :return: a list of submenu items.
+        :return: a tuple of submenu items.
         """
-        return self._sub_menu_items.get(item)
+        items = self._sub_menu_items.get(item)
+
+        if items is None or len(items) == 0:
+            return None
+
+        return tuple(items)
 
     def get_all_menu_items(self) -> set[MenuItem]:
         """
         Gets every menu item held in this menu tree, will be unique.
         :return: every menu item in the tree.
         """
-        pass
+        to_return = set()
+        subs: set[MenuItem] = self.get_all_sub_menus()
+        for sub in subs:
+            to_return.add(sub)
+            items = self.get_menu_items(sub)
+            if items is not None:
+                to_return.update(self.get_menu_items(sub))
 
-    def get_all_menu_items_from(self, item: SubMenuItem) -> list[MenuItem]:
+        return to_return
+
+    def get_all_menu_items_from(self, item: SubMenuItem) -> tuple[MenuItem]:
         """
         Gets every menu item held in this menu tree from a given starting point, the starting point is a sub menu,
         from that submenu, this method will recurse through the rest of the menu structure and provide a complete list.
@@ -170,7 +241,17 @@ class MenuTree:
         :param: item the starting point for traversal.
         :return: every menu item in the tree from the given starting point.
         """
-        pass
+        to_return: list[MenuItem] = []
+        sub_items: list[MenuItem] = self._sub_menu_items[item]
+        to_return.append(item)
+
+        for item in sub_items:
+            if item.has_children():
+                to_return.extend(self.get_all_menu_items_from(MenuItemHelper.as_sub_menu(item)))
+            else:
+                to_return.append(item)
+
+        return tuple(to_return)
 
     def change_item(self, item: MenuItem, menu_state: MenuState):
         """
@@ -181,6 +262,7 @@ class MenuTree:
         :param: item the item to change.
         :param: menu_state the new state.
         """
+        # TODO: Should we check whether the item is in menu tree?
         self._menu_states[item.id] = menu_state
 
     def get_menu_state(self, item: MenuItem) -> Optional[MenuState]:
@@ -192,18 +274,12 @@ class MenuTree:
         """
         return self._menu_states.get(item.id)
 
-    def recurse_tree_iterating_on_items(self, root: SubMenuItem, consumer):
-        """
-        Recurse the whole menu tree calling the consumer for each item in turn. This will always be in order so that
-        a child item never comes before its parent.
-        :param: root the starting point, normally ROOT.
-        :param: consumer the consumer that will be called for each item, providing the item and the parent.
-        """
-        pass
-
     def initialize_state_for_each_item(self):
         """
         Initialize the state of each menu item to the default value, should be used during initialization of a local
         menu application. Will only take effect when there is no state already stored.
         """
-        pass
+        items: set[MenuItem] = self.get_all_menu_items()
+        for item in items:
+            if self.get_menu_state(item) is None:
+                self.change_item(item, MenuItemHelper.state_for_menu_item(item, None, False, False))

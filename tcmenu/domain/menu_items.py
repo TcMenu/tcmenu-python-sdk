@@ -3,7 +3,7 @@ Copyright (c) 2022 Lutemi.
 This product is licensed under an Apache license, see the LICENSE file in the top-level directory.
 """
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import Enum
 from typing import Optional
 
@@ -161,7 +161,7 @@ class EnumMenuItem(MenuItem):
     value, but each choice has a string representation as well.
     """
 
-    enum_entries: list[str] = field(default_factory=lambda: [])
+    enum_entries: tuple[str, ...] = tuple()
 
 
 @dataclass(frozen=True)

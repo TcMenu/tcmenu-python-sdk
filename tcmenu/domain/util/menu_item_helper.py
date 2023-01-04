@@ -95,7 +95,17 @@ class MenuItemHelper:
         :param: new_id the ID for the copy
         :return: the newly created item
         """
-        return dataclasses.replace(selected, id=new_id)
+        return MenuItemHelper.create_from_existing(selected, id=new_id)
+
+    @staticmethod
+    def create_from_existing(selected: MenuItem, **changes):
+        """
+        Creates a copy of the menu item chosen replacing specified fields with new values.
+        :param: selected the item to copy
+        :param: changes keyword arguments like id=value, name=value...
+        :return: the newly created item
+        """
+        return dataclasses.replace(selected, **changes)
 
     @staticmethod
     def eeprom_size_for_item(item: Optional[MenuItem]):

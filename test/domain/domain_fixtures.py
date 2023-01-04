@@ -17,7 +17,7 @@ class DomainFixtures:
     @staticmethod
     def an_enum_item(name: str, item_id: int, enums: list[str] = None) -> EnumMenuItem:
         if enums is None:
-            enums = ["Item1", "Item2"]
+            enums = ("Item1", "Item2")
         return EnumMenuItem(name=name, id=item_id, eeprom_address=101, enum_entries=enums)
 
     @staticmethod

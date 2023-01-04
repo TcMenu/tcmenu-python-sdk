@@ -51,7 +51,7 @@ def test_enum_menu_item():
         name="Enum Menu",
         id=20,
         eeprom_address=102,
-        enum_entries=["Enum1"],
+        enum_entries=("Enum1",),
         function_name="someFn",
         variable_name="Menu123",
         visible=False,
