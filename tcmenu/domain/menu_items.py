@@ -137,7 +137,7 @@ class EditableLargeNumberMenuItem(MenuItem):
 
     digits_allowed: int = 0
     decimal_places: int = 0
-    negative_allowed: bool = -1
+    negative_allowed: bool = False
 
 
 @dataclass(frozen=True)
