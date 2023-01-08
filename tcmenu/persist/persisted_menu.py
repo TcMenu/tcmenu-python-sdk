@@ -42,7 +42,11 @@ class PersistedMenu:
         TCMENU_COPY_PREFIX: str = "tcMenuCopy:"
 
     def __init__(
-        self, item: MenuItem, parent_id: Optional[int], item_type: Optional[str], default_value: Optional[str] = None
+        self,
+        item: MenuItem,
+        parent_id: Optional[int] = None,
+        item_type: Optional[str] = None,
+        default_value: Optional[str] = None,
     ):
         if parent_id is None:
             self.parent_id = MenuTree.ROOT.id

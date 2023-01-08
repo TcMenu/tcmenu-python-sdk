@@ -1,5 +1,7 @@
 import logging
 import json
+from typing import Any
+
 import humps
 
 from tcmenu.domain.edit_item_type import EditItemType
@@ -42,11 +44,37 @@ class JsonMenuItemSerializer:
 
     logger = logging.getLogger("JsonMenuItemSerializer")
 
-    def populate_list_in_order(self, node: SubMenuItem, menu_tree: MenuTree) -> tuple[PersistedMenu]:
-        pass
+    @staticmethod
+    def populate_list_in_order(node: SubMenuItem, menu_tree: MenuTree) -> tuple[PersistedMenu]:
+        data: list[PersistedMenu] = []
+        items: tuple[MenuItem] = menu_tree.get_menu_items(node)
+        for item in items:
+            persisted_menu = PersistedMenu(item, node.id)
+            if menu_tree.get_menu_state(item) is not None:
+                persisted_menu.default_value = str(
+                    MenuItemHelper.get_value_for(item, menu_tree, MenuItemHelper.get_default_for(item))
+                )
+            data.append(persisted_menu)
+            if item.has_children():
+                data.extend(JsonMenuItemSerializer.populate_list_in_order(MenuItemHelper.as_sub_menu(item), menu_tree))
 
-    def item_to_copy_text(self, starting_point: MenuItem, tree: MenuTree) -> str:
-        pass
+        return tuple(data)
+
+    @staticmethod
+    def items_to_copy_text(starting_point: MenuItem, tree: MenuTree) -> str:
+        items: tuple[PersistedMenu]
+
+        if isinstance(starting_point, SubMenuItem):
+            items = JsonMenuItemSerializer.populate_list_in_order(starting_point, tree)
+        else:
+            menu: PersistedMenu = PersistedMenu(
+                starting_point,
+                tree.find_parent(starting_point).id,
+                default_value=str(MenuItemHelper.get_value_for(starting_point, tree)),
+            )
+            items = (menu,)
+
+        return f"{PersistedMenu.ItemTypes.TCMENU_COPY_PREFIX}{JsonMenuItemSerializer.to_json(items)}"
 
     @staticmethod
     def copy_text_to_items(copy_text: str) -> tuple[PersistedMenu]:
@@ -54,8 +82,7 @@ class JsonMenuItemSerializer:
             return tuple()
 
         json_str: str = copy_text[len(PersistedMenu.ItemTypes.TCMENU_COPY_PREFIX) :]
-        data = json.loads(json_str, object_hook=lambda val: humps.decamelize(val))
-        return tuple(map(JsonMenuItemSerializer.deserialize, data))
+        return JsonMenuItemSerializer.from_json(json_str)
 
     @staticmethod
     def new_menu_tree_with_items(tc_menu_copy: str) -> MenuTree:
@@ -69,6 +96,25 @@ class JsonMenuItemSerializer:
                 MenuItemHelper.set_menu_state(item.item, item.default_value, tree)
 
         return tree
+
+    @staticmethod
+    def to_json(items: tuple[PersistedMenu]) -> str:
+        """
+        Convert PersistedMenu items to json.
+        :param: items tuple containing PersistedMenu items.
+        :return: JSON
+        """
+        return json.dumps(items, indent=4, cls=PersistedMenuEncoder)
+
+    @staticmethod
+    def from_json(json_str: str) -> tuple[PersistedMenu]:
+        """
+        Convert json back to PersistedMenu items.
+        :param: json_str JSON string containing PersistedMenu items.
+        :return: tuple containing PersistedMenu items.
+        """
+        data = json.loads(json_str, object_hook=lambda val: humps.decamelize(val))
+        return tuple(map(JsonMenuItemSerializer.deserialize, data))
 
     @staticmethod
     def check_item_value_can_persist(persisted_menu: PersistedMenu) -> bool:
@@ -128,3 +174,38 @@ class JsonMenuItemSerializer:
             )
         except KeyError:
             JsonMenuItemSerializer.logger.error(f"Item of type {data['type']} was not reloaded - skipping")
+
+
+class PersistedMenuEncoder(json.JSONEncoder):
+    @staticmethod
+    def clean_nones(value):
+        """
+        Recursively remove all None values from dictionaries and lists, and returns
+        the result as a new dictionary or list.
+        """
+        if isinstance(value, list):
+            return [PersistedMenuEncoder.clean_nones(x) for x in value if x is not None]
+        elif isinstance(value, dict):
+            return {key: PersistedMenuEncoder.clean_nones(val) for key, val in value.items() if val is not None}
+        else:
+            return value
+
+    def default(self, obj: Any) -> Any:
+        if isinstance(obj, PersistedMenu):
+            data = {
+                "parent_id": int(obj.parent_id),
+                "type": str(obj.type),
+                "item": obj.item.__dict__,
+                "default_value": obj.default_value,
+            }
+            return PersistedMenuEncoder.clean_nones(humps.camelize(data))
+        elif isinstance(obj, BooleanMenuItem.BooleanNaming):
+            return str(obj.name)
+        elif isinstance(obj, CustomBuilderMenuItem.CustomMenuType):
+            return str(obj.name)
+        elif isinstance(obj, EditItemType):
+            return str(obj.name)
+        elif isinstance(obj, ScrollChoiceMenuItem.ScrollChoiceMode):
+            return str(obj.name)
+
+        return json.JSONEncoder.default(self, obj)
