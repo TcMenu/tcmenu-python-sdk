@@ -101,7 +101,7 @@ class JsonMenuItemSerializer:
     def to_json(items: tuple[PersistedMenu]) -> str:
         """
         Convert PersistedMenu items to json.
-        :param: items tuple containing PersistedMenu items.
+        :param items: tuple containing PersistedMenu items.
         :return: JSON
         """
         return json.dumps(items, indent=4, cls=PersistedMenuEncoder)
@@ -110,7 +110,7 @@ class JsonMenuItemSerializer:
     def from_json(json_str: str) -> tuple[PersistedMenu]:
         """
         Convert json back to PersistedMenu items.
-        :param: json_str JSON string containing PersistedMenu items.
+        :param json_str: JSON string containing PersistedMenu items.
         :return: tuple containing PersistedMenu items.
         """
         data = json.loads(json_str, object_hook=lambda val: humps.decamelize(val))
@@ -121,7 +121,7 @@ class JsonMenuItemSerializer:
         """
         There are some menu types that should not have a default value, these generally don't have a value
         associated with them that can be easily saved, such as lists, action items and submenus.
-        :param: persisted_menu the item to check
+        :param persisted_menu: the item to check
         :return: True if the item value can be persisted, otherwise False
         """
         item: MenuItem = persisted_menu.item

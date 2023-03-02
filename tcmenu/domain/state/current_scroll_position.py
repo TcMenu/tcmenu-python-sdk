@@ -14,8 +14,8 @@ class CurrentScrollPosition:
     @staticmethod
     def from_text(text: str) -> CurrentScrollPosition:
         """
-        Create from a textual representation in the form, position-value, EG 1-Pizza
-        :param: text the text form of the object to parse
+        Create from a textual representation in the form, position-value, EG 1-Pizza.
+        :param text: the text form of the object to parse.
         """
         position = None
         value = None

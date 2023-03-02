@@ -18,7 +18,7 @@ class PortableColor:
     def from_html(html_code: str) -> PortableColor:
         """
         Create a color object from a web color code such as #FFFFFF
-        :param: html_code the html code
+        :param html_code: the html code
         """
         if html_code[0] == "#" and len(html_code) == 4:
             red = int(html_code[1], 16) << 4

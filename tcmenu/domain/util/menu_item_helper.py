@@ -54,8 +54,8 @@ class MenuItemHelper:
     @staticmethod
     def as_sub_menu(item: MenuItem) -> Optional[SubMenuItem]:
         """
-        Returns the menu item as a sub menu or None
-        :param: item the possible sub menu
+        Returns the menu item as a sub menu or None.
+        :param item: the possible sub menu
         :return: the sub menu, or None.
         """
         if isinstance(item, SubMenuItem):
@@ -65,8 +65,8 @@ class MenuItemHelper:
     @staticmethod
     def is_runtime_structure_needed(item: MenuItem) -> bool:
         """
-        Check if the item is based on a runtime item
-        :param: item the item to check
+        Check if the item is based on a runtime item.
+        :param item: the item to check
         :return: true if runtime based, otherwise false.
         """
         if isinstance(item, RuntimeListMenuItem):
@@ -90,9 +90,9 @@ class MenuItemHelper:
     @staticmethod
     def create_from_existing_with_id(selected: MenuItem, new_id: int) -> MenuItem:
         """
-        Creates a copy of the menu item chosen, with the ID changed to new_id
-        :param: selected the item to copy
-        :param: new_id the ID for the copy
+        Creates a copy of the menu item chosen, with the ID changed to new_id.
+        :param selected: the item to copy
+        :param new_id: the ID for the copy
         :return: the newly created item
         """
         return MenuItemHelper.create_from_existing(selected, id=new_id)
@@ -101,8 +101,8 @@ class MenuItemHelper:
     def create_from_existing(selected: MenuItem, **changes):
         """
         Creates a copy of the menu item chosen replacing specified fields with new values.
-        :param: selected the item to copy
-        :param: changes keyword arguments like id=value, name=value...
+        :param selected: the item to copy
+        :param changes: keyword arguments like id=value, name=value...
         :return: the newly created item
         """
         return dataclasses.replace(selected, **changes)
@@ -111,7 +111,7 @@ class MenuItemHelper:
     def eeprom_size_for_item(item: Optional[MenuItem]):
         """
         Gets the size of the eeprom storage for a given element type
-        :param: item the item to determine eeprom size for
+        :param item: the item to determine eeprom size for
         :return: the eeprom storage needed.
         """
         if item is None:
@@ -147,10 +147,10 @@ class MenuItemHelper:
     ) -> MenuState:
         """
         Modify an existing state with a new value.
-        :param: existing_state the existing state object
-        :param: item the item
-        :param: value the changed value
-        :param: changed optional new change status. If not specified, existing state will be kept
+        :param existing_state: the existing state object
+        :param item: the item
+        :param value: the changed value
+        :param changed: optional new change status. If not specified, existing state will be kept
         :return: a new state object based on the parameters
         """
         active = False
@@ -171,10 +171,10 @@ class MenuItemHelper:
         Create a menu state for a given item with a value update. We try pretty hard
         to convert whatever comes in for the value into a new state.
 
-        :param: item the item to create the state for
-        :param: value the value
-        :param: changed the changed status
-        :param: active the active status
+        :param item: the item to create the state for
+        :param value: the value
+        :param changed: the changed status
+        :param active: the active status
         :return: the new menu state
         """
         if item is None:
@@ -253,9 +253,9 @@ class MenuItemHelper:
         Try and apply an incremental delta value update to a menu tree. This works for integer, enum and scroll items.
         It loads the existing value and tries to apply the delta offset, if the min/max would not be exceeded.
 
-        :param: item the item to change
-        :param: delta the delta amount
-        :param: tree the tree the item belongs to
+        :param item: the item to change
+        :param delta: the delta amount
+        :param tree: the tree the item belongs to
         :return: a new item if the operation was possible, otherwise empty
         """
         state = tree.get_menu_state(item)
@@ -292,9 +292,9 @@ class MenuItemHelper:
     def set_menu_state(item: MenuItem, value: Any, tree: "MenuTree"):
         """
         Set the state in the tree for an item with a new value, setting it changed if it genuinely has.
-        :param: item the item
-        :param: value the replacement value
-        :param: tree the tree to change
+        :param item: the item
+        :param value: the replacement value
+        :param tree: the tree to change
         """
         old_state = tree.get_menu_state(item)
 
@@ -312,9 +312,9 @@ class MenuItemHelper:
     def get_value_for(item: MenuItem, tree: "MenuTree", default: Optional[Any] = None):
         """
         Gets the value from the tree or the default provided
-        :param: item the item
-        :param: tree the tree to lookup in
-        :param: def the default item (get_default_for can get the default automatically)
+        :param item: the item
+        :param tree: the tree to lookup in
+        :param def: the default item (get_default_for can get the default automatically)
         :return: the item looked up, or the default.
         """
         if default is None:
@@ -333,7 +333,7 @@ class MenuItemHelper:
     def get_default_for(item: MenuItem) -> Any:
         """
         Gets the default item value for a menu item, such that the value could be used in call to set state.
-        :param: item the item
+        :param item: the item
         :return: the default value
         """
         if isinstance(item, AnalogMenuItem) or isinstance(item, EnumMenuItem):
@@ -358,10 +358,10 @@ class MenuItemHelper:
     @staticmethod
     def get_boot_msg_for_item(item: MenuItem, parent: SubMenuItem, tree: "MenuTree") -> Optional[BootItemMenuCommand]:
         """
-        Can be used during boot sequences to get a suitable boot item for a menu item
-        :param: item the item
-        :param: parent the parent
-        :param: tree the tree it belongs to
+        Can be used during boot sequences to get a suitable boot item for a menu item.
+        :param item: the item
+        :param parent: the parent
+        :param tree: the tree it belongs to
         :return: either a boot item or empty
         """
         if isinstance(item, AnalogMenuItem):

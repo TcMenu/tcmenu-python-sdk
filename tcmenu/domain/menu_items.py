@@ -228,6 +228,6 @@ class SubMenuItem(MenuItem):
 
     def has_children(self) -> bool:
         """
-        :return: true submenu's always have children.
+        :return: True; submenu's always have children.
         """
         return True

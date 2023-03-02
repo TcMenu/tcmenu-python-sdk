@@ -1,8 +1,3 @@
-"""
-Copyright (c) 2022 Lutemi.
-This product is licensed under an Apache license, see the LICENSE file in the top-level directory.
-"""
-
 from enum import Enum
 
 

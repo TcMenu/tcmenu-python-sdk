@@ -29,7 +29,7 @@ class ListResponse:
     def from_string(value) -> Optional[ListResponse]:
         """
         Deserialize a ListResponse from a string if possible or return empty
-        :param: value the string to decode
+        :param value: the string to decode
         :return: either a ListResponse or empty.
         """
         list_response_pattern = "^(\\d+):(\\d)$"
