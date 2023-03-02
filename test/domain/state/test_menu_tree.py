@@ -107,6 +107,28 @@ def test_manipulating_state():
     assert menu_tree.get_menu_state(item_text).value == "Hello"
 
 
+def test_state_for_out_of_tree_item_is_not_stored():
+    menu_tree = MenuTree()
+    menu_tree.add_menu_item(parent=MenuTree.ROOT, item=sub_menu)
+    menu_tree.add_menu_item(parent=MenuTree.ROOT, item=item1)
+
+    # State for the tree item is updated.
+    menu_tree.change_item(item1, MenuItemHelper.state_for_menu_item(item1, 2, True, False))
+    assert menu_tree.get_menu_state(item1) is not None
+    assert menu_tree.get_menu_state(item1).value == 2
+
+    # State for the item with the same ID as tree item is updated
+    # (they are considered identical).
+    item_with_same_id = DomainFixtures.an_enum_item(name="Item1Copy", item_id=1)
+    menu_tree.change_item(item_with_same_id, MenuItemHelper.state_for_menu_item(item_with_same_id, False, True, False))
+    assert menu_tree.get_menu_state(item_with_same_id) is not None
+    assert menu_tree.get_menu_state(item_with_same_id).value == 0
+
+    # State for out-of-tree item is not updated.
+    menu_tree.change_item(item3, MenuItemHelper.state_for_menu_item(item3, 1, True, False))
+    assert menu_tree.get_menu_state(item3) is None
+
+
 def test_replace_by_id():
     menu_tree = MenuTree()
     menu_tree.add_menu_item(parent=MenuTree.ROOT, item=item3)

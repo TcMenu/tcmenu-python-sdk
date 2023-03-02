@@ -262,7 +262,13 @@ class MenuTree:
         :param item: the item to change.
         :param menu_state: the new state.
         """
-        # TODO: Should we check whether the item is in menu tree?
+
+        # Add/update state only for items in the menu tree.
+        # Note: Out of tree item with the same ID as an item inside tree
+        # is considered to be the same item.
+        if item.id not in set(map(lambda tree_item: tree_item.id, self.get_all_menu_items())):
+            return
+
         self._menu_states[item.id] = menu_state
 
     def get_menu_state(self, item: MenuItem) -> Optional[MenuState]:
