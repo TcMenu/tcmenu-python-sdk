@@ -1,4 +1,4 @@
-from enum import Enum
+from enum import Enum, auto
 from typing import Optional
 
 from tcmenu.domain.menu_items import SubMenuItem, MenuItem
@@ -20,9 +20,10 @@ class MenuTree:
     describe the direction of the move.
     """
 
+    # noinspection PyArgumentList
     class MoveType(Enum):
-        MOVE_UP = 0
-        MOVE_DOWN = 1
+        MOVE_UP = auto()
+        MOVE_DOWN = auto()
 
     """This is the root menu item, the top level item on the display basically."""
     ROOT = SubMenuItem(

@@ -4,7 +4,7 @@ This product is licensed under an Apache license, see the LICENSE file in the to
 """
 
 from dataclasses import dataclass
-from enum import Enum
+from enum import Enum, auto
 from typing import Optional
 
 from tcmenu.domain.edit_item_type import EditItemType
@@ -99,10 +99,12 @@ class BooleanMenuItem(MenuItem):
     be represented with different text.
     """
 
+    # noinspection PyArgumentList
     class BooleanNaming(Enum):
-        ON_OFF = 0
-        YES_NO = 1
-        TRUE_FALSE = 2
+        ON_OFF = auto()
+        YES_NO = auto()
+        TRUE_FALSE = auto()
+        CHECKBOX = auto()
 
     """the naming for this boolean, that describes how to render the true/false choice."""
     naming: BooleanNaming = BooleanNaming.ON_OFF
@@ -118,9 +120,10 @@ class CustomBuilderMenuItem(MenuItem):
     IMPORTANT: This menu type is a design time only type, it must never be sent to a remote.
     """
 
+    # noinspection PyArgumentList
     class CustomMenuType(Enum):
-        AUTHENTICATION = 0
-        REMOTE_IOT_MONITOR = 1
+        AUTHENTICATION = auto()
+        REMOTE_IOT_MONITOR = auto()
 
     """the naming for this boolean, that describes how to render the true/false choice."""
     menu_type: CustomMenuType = CustomMenuType.AUTHENTICATION
@@ -197,10 +200,11 @@ class ScrollChoiceMenuItem(MenuItem):
     larger, the choices are in eeprom, or you need more control at runtime of the choices.
     """
 
+    # noinspection PyArgumentList
     class ScrollChoiceMode(Enum):
-        ARRAY_IN_EEPROM = 0
-        ARRAY_IN_RAM = 1
-        CUSTOM_RENDERFN = 2
+        ARRAY_IN_EEPROM = auto()
+        ARRAY_IN_RAM = auto()
+        CUSTOM_RENDERFN = auto()
 
     item_width: int = 0
     eeprom_offset: int = 0

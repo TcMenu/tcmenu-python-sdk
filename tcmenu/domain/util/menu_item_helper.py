@@ -29,7 +29,7 @@ from tcmenu.domain.state.menu_state import (
     PortableColorMenuState,
 )
 from tcmenu.domain.state.portable_color import PortableColor
-from tcmenu.remote.commands.menu_command import (
+from tcmenu.remote.commands.menu_commands import (
     BootItemMenuCommand,
     MenuAnalogBootCommand,
     MenuEnumBootCommand,

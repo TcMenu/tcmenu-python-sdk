@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from enum import Enum
+from enum import Enum, auto
 from typing import Any
 
 from tcmenu.domain.menu_items import MenuItem
@@ -7,19 +7,20 @@ from tcmenu.domain.menu_items import MenuItem
 
 @dataclass
 class MenuState:
+    # noinspection PyArgumentList
     class StateStorageType(Enum):
         """
         Represents the storage type for the state.
         """
 
-        INTEGER = 0
-        BOOLEAN = 1
-        FLOAT = 2
-        STRING = 3
-        STRING_LIST = 4
-        SCROLL_POSITION = 5
-        PORTABLE_COLOR = 6
-        BIG_DECIMAL = 7
+        INTEGER = auto()
+        BOOLEAN = auto()
+        FLOAT = auto()
+        STRING = auto()
+        STRING_LIST = auto()
+        SCROLL_POSITION = auto()
+        PORTABLE_COLOR = auto()
+        BIG_DECIMAL = auto()
 
     """Changed status."""
     changed: bool

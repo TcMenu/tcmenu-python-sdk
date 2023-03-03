@@ -1,6 +1,6 @@
 from __future__ import annotations
 from dataclasses import dataclass
-from enum import Enum
+from enum import Enum, auto
 from typing import Optional
 import re
 
@@ -12,9 +12,10 @@ class ListResponse:
     the user clicks on the list, or double-clicks. It holds the row that was selected and the action type.
     """
 
+    # noinspection PyArgumentList
     class ResponseType(Enum):
-        SELECT_ITEM = 0
-        INVOKE_ITEM = 1
+        SELECT_ITEM = auto()
+        INVOKE_ITEM = auto()
 
     """The row that was selected."""
     row: int
