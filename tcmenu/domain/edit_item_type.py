@@ -35,3 +35,7 @@ class EditItemType(Enum):
 
     """This field represents a 12H time in minutes"""
     TIME_12H_HHMM = 9
+
+    @property
+    def message_id(self):
+        return self._value_

@@ -1,7 +1,8 @@
+from enum import Enum
 from tcmenu.remote.protocol.message_field import MessageField
 
 
-class MenuCommandType:
+class MenuCommandType(Enum):
     """
     Here all the inbuilt types of messages that can be sent to and from the server are listed out.
     """
@@ -25,3 +26,7 @@ class MenuCommandType:
     ACKNOWLEDGEMENT = MessageField("A", "K")
     CHANGE_INT_FIELD = MessageField("V", "C")
     DIALOG_UPDATE = MessageField("D", "M")
+
+    @property
+    def message_field(self):
+        return self._value_

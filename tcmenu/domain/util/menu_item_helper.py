@@ -29,22 +29,9 @@ from tcmenu.domain.state.menu_state import (
     PortableColorMenuState,
 )
 from tcmenu.domain.state.portable_color import PortableColor
-from tcmenu.remote.commands.menu_commands import (
-    BootItemMenuCommand,
-    MenuAnalogBootCommand,
-    MenuEnumBootCommand,
-    MenuFloatBootCommand,
-    MenuBooleanBootCommand,
-    MenuSubBootCommand,
-    MenuActionBootCommand,
-    MenuLargeNumBootCommand,
-    MenuTextBootCommand,
-    MenuRgb32BootCommand,
-    MenuRuntimeListBootCommand,
-    MenuScrollChoiceBootCommand,
-)
 
 
+# noinspection PyUnresolvedReferences
 class MenuItemHelper:
     """
     A helper class for dealing with MenuItem objects. This class provides helpers for visiting
@@ -314,7 +301,7 @@ class MenuItemHelper:
         Gets the value from the tree or the default provided
         :param item: the item
         :param tree: the tree to lookup in
-        :param def: the default item (get_default_for can get the default automatically)
+        :param default: the default item (get_default_for can get the default automatically)
         :return: the item looked up, or the default.
         """
         if default is None:
@@ -356,7 +343,7 @@ class MenuItemHelper:
             return False
 
     @staticmethod
-    def get_boot_msg_for_item(item: MenuItem, parent: SubMenuItem, tree: "MenuTree") -> Optional[BootItemMenuCommand]:
+    def get_boot_msg_for_item(item: MenuItem, parent: SubMenuItem, tree: "MenuTree") -> Optional["BootItemMenuCommand"]:
         """
         Can be used during boot sequences to get a suitable boot item for a menu item.
         :param item: the item
@@ -364,6 +351,21 @@ class MenuItemHelper:
         :param tree: the tree it belongs to
         :return: either a boot item or empty
         """
+
+        from tcmenu.remote.commands.menu_commands import (
+            MenuAnalogBootCommand,
+            MenuEnumBootCommand,
+            MenuFloatBootCommand,
+            MenuBooleanBootCommand,
+            MenuSubBootCommand,
+            MenuActionBootCommand,
+            MenuLargeNumBootCommand,
+            MenuTextBootCommand,
+            MenuRgb32BootCommand,
+            MenuRuntimeListBootCommand,
+            MenuScrollChoiceBootCommand,
+        )
+
         if isinstance(item, AnalogMenuItem):
             return MenuAnalogBootCommand(
                 sub_menu_id=parent.id, menu_item=item, current_value=MenuItemHelper.get_value_for(item, tree, 0)
