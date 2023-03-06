@@ -7,7 +7,8 @@ class ApiPlatform(Enum):
     Provides a list of the supported platforms as an enumeration. Used during joining
     to indicate the platform of the connectee.
     """
-    Platform = namedtuple('ApiPlatform', ['key', 'description'])
+
+    Platform = namedtuple("ApiPlatform", ["key", "description"])
 
     ARDUINO = Platform(0, "Arduino 8-bit")
     ARDUINO32 = Platform(2, "Arduino 32-bit")
@@ -21,10 +22,10 @@ class ApiPlatform(Enum):
 
     @property
     def key(self) -> str:
-        """ Platform key. """
+        """Platform key."""
         return self._value_.key
 
     @property
     def description(self) -> str:
-        """ Platform description. """
+        """Platform description."""
         return self._value_.description

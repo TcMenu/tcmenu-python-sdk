@@ -42,14 +42,16 @@ class BootItemMenuCommand(MenuCommand, ABC):
     sub_menu_id: int
 
     def __repr__(self):
-        return f"BootItemMenuCommand[{self.command_type}] {{" \
-               f" menu_item={self.menu_item}," \
-               f" current_value={self.current_value}," \
-               f" sub_menu_id={self.sub_menu_id}" \
-               f" }}"
+        return (
+            f"BootItemMenuCommand[{self.command_type}] {{"
+            f" menu_item={self.menu_item},"
+            f" current_value={self.current_value},"
+            f" sub_menu_id={self.sub_menu_id}"
+            f" }}"
+        )
 
     def new_menu_state(self, old_state: Optional[MenuState] = None) -> MenuState:
-        changed = (old_state and old_state.value != self.current_value)
+        changed = old_state and old_state.value != self.current_value
         return MenuItemHelper.state_for_menu_item(self.menu_item, self.current_value, changed, old_state.active)
 
 
@@ -133,10 +135,12 @@ class MenuAcknowledgementCommand(MenuCommand):
         return MenuCommandType.ACKNOWLEDGEMENT.message_field
 
     def __repr__(self):
-        return f"MenuAcknowledgementCommand{{" \
-               f" correlation_id={self.correlation_id}," \
-               f" ack_status={self.ack_status}" \
-               f" }}"
+        return (
+            f"MenuAcknowledgementCommand{{"
+            f" correlation_id={self.correlation_id},"
+            f" ack_status={self.ack_status}"
+            f" }}"
+        )
 
 
 @dataclass(frozen=True)
@@ -152,9 +156,7 @@ class MenuBootstrapCommand(MenuCommand):
         return MenuCommandType.BOOTSTRAP.message_field
 
     def __repr__(self):
-        return f"MenuBootstrapCommand{{" \
-               f" bootType={self.boot_type}" \
-               f" }}"
+        return f"MenuBootstrapCommand{{" f" bootType={self.boot_type}" f" }}"
 
 
 @dataclass(frozen=True)
@@ -175,19 +177,20 @@ class MenuChangeCommand(MenuCommand):
 
     @property
     def change_type(self):
-        return MenuChangeCommand.ChangeType.ABSOLUTE_LIST\
-            if type(self.value) == tuple else self.change_type
+        return MenuChangeCommand.ChangeType.ABSOLUTE_LIST if type(self.value) == tuple else self.change_type
 
     def command_type(self) -> MessageField:
         return MenuCommandType.CHANGE_INT_FIELD.message_field
 
     def __repr__(self):
-        return f"MenuChangeCommand{{" \
-               f" menu_item_id={self.menu_item_id}," \
-               f" correlation={self.correlation_id}," \
-               f" change_type={self.change_type},"\
-               f" value={self.value}" \
-               f" }}"
+        return (
+            f"MenuChangeCommand{{"
+            f" menu_item_id={self.menu_item_id},"
+            f" correlation={self.correlation_id},"
+            f" change_type={self.change_type},"
+            f" value={self.value}"
+            f" }}"
+        )
 
 
 @dataclass(frozen=True)
@@ -208,14 +211,16 @@ class MenuDialogCommand(MenuCommand):
         return MenuCommandType.DIALOG_UPDATE.message_field
 
     def __repr__(self):
-        return f"MenuDialogCommand{{" \
-               f" dialog_mode={self.dialog_mode}," \
-               f" header={self.header},"\
-               f" buffer={self.buffer}," \
-               f" button1={self.button1}," \
-               f" button2={self.button2}," \
-               f" correlation={self.correlation_id}" \
-               f" }}"
+        return (
+            f"MenuDialogCommand{{"
+            f" dialog_mode={self.dialog_mode},"
+            f" header={self.header},"
+            f" buffer={self.buffer},"
+            f" button1={self.button1},"
+            f" button2={self.button2},"
+            f" correlation={self.correlation_id}"
+            f" }}"
+        )
 
 
 @dataclass(frozen=True)
@@ -251,12 +256,14 @@ class MenuJoinCommand(MenuCommand):
         return MenuCommandType.JOIN.message_field
 
     def __repr__(self):
-        return f"MenuJoinCommand{{" \
-               f" my_name={self.my_name}," \
-               f" api_ver={self.api_version},"\
-               f" platform={self.platform}," \
-               f" uuid={self.app_uuid}" \
-               f" }}"
+        return (
+            f"MenuJoinCommand{{"
+            f" my_name={self.my_name},"
+            f" api_ver={self.api_version},"
+            f" platform={self.platform},"
+            f" uuid={self.app_uuid}"
+            f" }}"
+        )
 
 
 @dataclass(frozen=True)
@@ -269,7 +276,4 @@ class MenuPairingCommand(MenuCommand):
         return MenuCommandType.PAIRING_REQUEST.message_field
 
     def __repr__(self):
-        return f"MenuPairingCommand{{" \
-               f" name={self.name}," \
-               f" uuid={self.uuid}" \
-               f" }}"
+        return f"MenuPairingCommand{{" f" name={self.name}," f" uuid={self.uuid}" f" }}"

@@ -6,7 +6,8 @@ class AckStatus(Enum):
     """
     An enumeration that represents all the possible status / error return codes from the remote.
     """
-    Status = namedtuple('AckStatus', ['description', 'status_code'])
+
+    Status = namedtuple("AckStatus", ["description", "status_code"])
 
     """ This is a warning that the value was out of range. """
     VALUE_RANGE_WARNING = Status("Value out of range", -1)
@@ -28,14 +29,14 @@ class AckStatus(Enum):
 
     @property
     def description(self) -> str:
-        """ Description of the status. """
+        """Description of the status."""
         return self._value_.description
 
     @property
     def status_code(self) -> int:
-        """ Integer wire code for the status. """
+        """Integer wire code for the status."""
         return self._value_.status_code
 
     def is_error(self) -> bool:
-        """ :return: True if the status code is an error, otherwise False. """
+        """:return: True if the status code is an error, otherwise False."""
         return self._value_.status_code > 0

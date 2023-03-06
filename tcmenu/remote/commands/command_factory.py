@@ -1,12 +1,21 @@
 from typing import Optional
 from uuid import UUID
 
-from tcmenu.domain.menu_items import AnalogMenuItem, RuntimeListMenuItem
+from tcmenu.domain.menu_items import AnalogMenuItem, RuntimeListMenuItem, SubMenuItem, EnumMenuItem, BooleanMenuItem, \
+    FloatMenuItem
 from tcmenu.remote.commands.ack_status import AckStatus
 from tcmenu.remote.commands.dialog_mode import DialogMode
 from tcmenu.remote.commands.menu_button_type import MenuButtonType
-from tcmenu.remote.commands.menu_commands import MenuJoinCommand, MenuHeartbeatCommand, MenuAcknowledgementCommand, \
-    MenuPairingCommand, MenuDialogCommand, MenuBootstrapCommand, MenuAnalogBootCommand, MenuRuntimeListBootCommand
+from tcmenu.remote.commands.menu_commands import (
+    MenuJoinCommand,
+    MenuHeartbeatCommand,
+    MenuAcknowledgementCommand,
+    MenuPairingCommand,
+    MenuDialogCommand,
+    MenuBootstrapCommand,
+    MenuAnalogBootCommand,
+    MenuRuntimeListBootCommand, MenuSubBootCommand, MenuEnumBootCommand, MenuBooleanBootCommand, MenuFloatBootCommand,
+)
 from tcmenu.remote.protocol.api_platform import ApiPlatform
 from tcmenu.remote.protocol.correlation_id import CorrelationId
 from tcmenu.remote.protocol.protocol_util import ProtocolUtil
@@ -29,11 +38,16 @@ class CommandFactory:
         :return: join command.
         """
         if not uuid:
-            return MenuJoinCommand(my_name=name, platform=ApiPlatform.PYTHON_API,
-                                   api_version=ProtocolUtil.get_version_from_properties())
+            return MenuJoinCommand(
+                my_name=name, platform=ApiPlatform.PYTHON_API, api_version=ProtocolUtil.get_version_from_properties()
+            )
         else:
-            return MenuJoinCommand(my_name=name, platform=ApiPlatform.PYTHON_API,
-                                   api_version=ProtocolUtil.get_version_from_properties(), app_uuid=uuid)
+            return MenuJoinCommand(
+                my_name=name,
+                platform=ApiPlatform.PYTHON_API,
+                api_version=ProtocolUtil.get_version_from_properties(),
+                app_uuid=uuid,
+            )
 
     @staticmethod
     def new_heartbeat_command(frequency: int, mode: MenuHeartbeatCommand.HeartbeatMode) -> MenuHeartbeatCommand:
@@ -67,12 +81,13 @@ class CommandFactory:
 
     @staticmethod
     def new_dialog_command(
-            mode: DialogMode,
-            header: str,
-            message: str,
-            button1: MenuButtonType,
-            button2: MenuButtonType,
-            correlation_id: CorrelationId) -> MenuDialogCommand:
+        mode: DialogMode,
+        header: str,
+        message: str,
+        button1: MenuButtonType,
+        button2: MenuButtonType,
+        correlation_id: CorrelationId,
+    ) -> MenuDialogCommand:
         """
         Create a new dialog command.
         """
@@ -99,7 +114,9 @@ class CommandFactory:
         return MenuAnalogBootCommand(sub_menu_id=parent_id, menu_item=item, current_value=current_value)
 
     @staticmethod
-    def new_runtime_list_boot_command(parent_id: int, item: RuntimeListMenuItem, value: tuple[str]) -> MenuRuntimeListBootCommand:
+    def new_runtime_list_boot_command(
+        parent_id: int, item: RuntimeListMenuItem, value: tuple[str]
+    ) -> MenuRuntimeListBootCommand:
         """
         Create a new runtime list boot command.
         :param parent_id: the parent onto which this will be placed.
@@ -108,3 +125,47 @@ class CommandFactory:
         :return: a new runtime list boot command.
         """
         return MenuRuntimeListBootCommand(sub_menu_id=parent_id, menu_item=item, current_value=value)
+
+    @staticmethod
+    def new_menu_sub_boot_command(parent_id: int, item: SubMenuItem) -> MenuSubBootCommand:
+        """
+        Create a new submenu bootstrap command.
+        :param parent_id: the parent onto which the item will be placed.
+        :param item: the item itself.
+        :return: a new submenu boot command.
+        """
+        return MenuSubBootCommand(sub_menu_id=parent_id, menu_item=item, current_value=False)
+
+    @staticmethod
+    def new_menu_enum_boot_command(parent_id: int, item: EnumMenuItem, current_value: int) -> MenuEnumBootCommand:
+        """
+        Create a new enum bootstrap command.
+        :param parent_id: the parent onto which the item will be placed.
+        :param item: the item itself.
+        :param current_value: the current value.
+        :return: a new enum boot command.
+        """
+        return MenuEnumBootCommand(sub_menu_id=parent_id, menu_item=item, current_value=current_value)
+
+    @staticmethod
+    def new_menu_boolean_boot_command(parent_id: int, item: BooleanMenuItem, current_value: int) -> MenuBooleanBootCommand:
+        """
+        Create a new boolean bootstrap command.
+        :param parent_id: the parent onto which the item will be placed.
+        :param item: the item itself.
+        :param current_value: the current value.
+        :return: a new boolean boot command.
+        """
+        return MenuBooleanBootCommand(sub_menu_id=parent_id, menu_item=item, current_value=current_value)
+
+    @staticmethod
+    def new_menu_float_boot_command(parent_id: int, item: FloatMenuItem, current_value: int) -> MenuFloatBootCommand:
+        """
+        Create a new float bootstrap command.
+        :param parent_id: the parent onto which the item will be placed.
+        :param item: the item itself.
+        :param current_value: the current value.
+        :return: a new float boot command.
+        """
+        return MenuFloatBootCommand(sub_menu_id=parent_id, menu_item=item, current_value=current_value)
+

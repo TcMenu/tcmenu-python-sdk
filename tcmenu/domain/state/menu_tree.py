@@ -111,7 +111,7 @@ class MenuTree:
             sub_menu = self.find_parent(to_replace)
 
         idx = None
-        for (i, item) in enumerate(self._sub_menu_items[sub_menu]):
+        for i, item in enumerate(self._sub_menu_items[sub_menu]):
             if item.id == to_replace.id:
                 idx = i
                 break
@@ -169,7 +169,7 @@ class MenuTree:
         :return: the submenu.
         """
         parent = None
-        for (menu_item, sub_menu_items) in self._sub_menu_items.items():
+        for menu_item, sub_menu_items in self._sub_menu_items.items():
             for item in sub_menu_items:
                 if item.id == to_find.id:
                     parent = MenuItemHelper.as_sub_menu(menu_item)
