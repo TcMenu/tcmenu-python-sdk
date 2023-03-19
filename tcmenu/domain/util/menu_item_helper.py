@@ -352,7 +352,7 @@ class MenuItemHelper:
         :return: either a boot item or empty
         """
 
-        from tcmenu.remote.commands.menu_commands import (
+        from tcmenu.remote.commands.menu_boot_commands import (
             MenuAnalogBootCommand,
             MenuEnumBootCommand,
             MenuFloatBootCommand,

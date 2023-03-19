@@ -16,14 +16,10 @@ from tcmenu.domain.menu_items import (
 from tcmenu.domain.state.list_response import ListResponse
 from tcmenu.remote.commands.ack_status import AckStatus
 from tcmenu.remote.commands.dialog_mode import DialogMode
+from tcmenu.remote.commands.menu_acknowledgement_command import MenuAcknowledgementCommand
+from tcmenu.remote.commands.menu_bootstrap_command import MenuBootstrapCommand
 from tcmenu.remote.commands.menu_button_type import MenuButtonType
-from tcmenu.remote.commands.menu_commands import (
-    MenuJoinCommand,
-    MenuHeartbeatCommand,
-    MenuAcknowledgementCommand,
-    MenuPairingCommand,
-    MenuDialogCommand,
-    MenuBootstrapCommand,
+from tcmenu.remote.commands.menu_boot_commands import (
     MenuAnalogBootCommand,
     MenuRuntimeListBootCommand,
     MenuSubBootCommand,
@@ -33,8 +29,12 @@ from tcmenu.remote.commands.menu_commands import (
     MenuActionBootCommand,
     MenuTextBootCommand,
     MenuLargeNumBootCommand,
-    MenuChangeCommand,
 )
+from tcmenu.remote.commands.menu_change_command import MenuChangeCommand
+from tcmenu.remote.commands.menu_dialog_command import MenuDialogCommand
+from tcmenu.remote.commands.menu_heartbeat_command import MenuHeartbeatCommand
+from tcmenu.remote.commands.menu_join_command import MenuJoinCommand
+from tcmenu.remote.commands.menu_pairing_command import MenuPairingCommand
 from tcmenu.remote.protocol.api_platform import ApiPlatform
 from tcmenu.remote.protocol.correlation_id import CorrelationId
 from tcmenu.remote.protocol.protocol_util import ProtocolUtil
@@ -113,13 +113,13 @@ class CommandFactory:
         return MenuDialogCommand(mode, header, message, button1, button2, correlation_id)
 
     @staticmethod
-    def new_bootstrap_command(type: MenuBootstrapCommand.BootType) -> MenuBootstrapCommand:
+    def new_bootstrap_command(boot_type: MenuBootstrapCommand.BootType) -> MenuBootstrapCommand:
         """
         Create a new bootstrap message either to indicate the bootstrap start or end.
-        :param type: one of the enum values allowed.
+        :param boot_type: one of the enum values allowed.
         :return: bootstrap message.
         """
-        return MenuBootstrapCommand(type)
+        return MenuBootstrapCommand(boot_type)
 
     @staticmethod
     def new_analog_boot_command(parent_id: int, item: AnalogMenuItem, current_value: int) -> MenuAnalogBootCommand:
@@ -299,7 +299,7 @@ class CommandFactory:
         Creates a new change command that represents a list item either being selected or invoked.
         :param correlation_id: a correlation ID that will be returned in the subsequent acknowledgement.
         :param item: the item (or its ID) for which to send.
-        :param value: the new value, must be a ListResponse.
+        :param values: the new value.
         :return: a new change message.
         """
         if isinstance(item, MenuItem):
