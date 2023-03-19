@@ -1,8 +1,19 @@
-from typing import Optional
+from typing import Optional, Union
 from uuid import UUID
 
-from tcmenu.domain.menu_items import AnalogMenuItem, RuntimeListMenuItem, SubMenuItem, EnumMenuItem, BooleanMenuItem, \
-    FloatMenuItem
+from tcmenu.domain.menu_items import (
+    AnalogMenuItem,
+    RuntimeListMenuItem,
+    SubMenuItem,
+    EnumMenuItem,
+    BooleanMenuItem,
+    FloatMenuItem,
+    ActionMenuItem,
+    EditableTextMenuItem,
+    EditableLargeNumberMenuItem,
+    MenuItem,
+)
+from tcmenu.domain.state.list_response import ListResponse
 from tcmenu.remote.commands.ack_status import AckStatus
 from tcmenu.remote.commands.dialog_mode import DialogMode
 from tcmenu.remote.commands.menu_button_type import MenuButtonType
@@ -14,7 +25,15 @@ from tcmenu.remote.commands.menu_commands import (
     MenuDialogCommand,
     MenuBootstrapCommand,
     MenuAnalogBootCommand,
-    MenuRuntimeListBootCommand, MenuSubBootCommand, MenuEnumBootCommand, MenuBooleanBootCommand, MenuFloatBootCommand,
+    MenuRuntimeListBootCommand,
+    MenuSubBootCommand,
+    MenuEnumBootCommand,
+    MenuBooleanBootCommand,
+    MenuFloatBootCommand,
+    MenuActionBootCommand,
+    MenuTextBootCommand,
+    MenuLargeNumBootCommand,
+    MenuChangeCommand,
 )
 from tcmenu.remote.protocol.api_platform import ApiPlatform
 from tcmenu.remote.protocol.correlation_id import CorrelationId
@@ -148,7 +167,9 @@ class CommandFactory:
         return MenuEnumBootCommand(sub_menu_id=parent_id, menu_item=item, current_value=current_value)
 
     @staticmethod
-    def new_menu_boolean_boot_command(parent_id: int, item: BooleanMenuItem, current_value: int) -> MenuBooleanBootCommand:
+    def new_menu_boolean_boot_command(
+        parent_id: int, item: BooleanMenuItem, current_value: int
+    ) -> MenuBooleanBootCommand:
         """
         Create a new boolean bootstrap command.
         :param parent_id: the parent onto which the item will be placed.
@@ -169,3 +190,126 @@ class CommandFactory:
         """
         return MenuFloatBootCommand(sub_menu_id=parent_id, menu_item=item, current_value=current_value)
 
+    @staticmethod
+    def new_menu_action_boot_command(parent_id: int, item: ActionMenuItem) -> MenuActionBootCommand:
+        """
+        Create a new action bootstrap command.
+        :param parent_id: the parent onto which the item will be placed.
+        :param item: the item itself.
+        :return: a new action boot command.
+        """
+        return MenuActionBootCommand(sub_menu_id=parent_id, menu_item=item, current_value=False)
+
+    @staticmethod
+    def new_menu_text_boot_command(
+        parent_id: int, item: EditableTextMenuItem, current_value: str
+    ) -> MenuTextBootCommand:
+        """
+        Create a new text bootstrap command.
+        :param parent_id: the parent onto which the item will be placed.
+        :param item: the item itself.
+        :param current_value: the current value.
+        :return: a new text boot command.
+        """
+        return MenuTextBootCommand(sub_menu_id=parent_id, menu_item=item, current_value=current_value)
+
+    @staticmethod
+    def new_menu_large_item_boot_command(
+        parent_id: int, item: EditableLargeNumberMenuItem, current_value: int
+    ) -> MenuLargeNumBootCommand:
+        """
+        Create a new large number bootstrap command.
+        :param parent_id: the parent onto which the item will be placed.
+        :param item: the item itself.
+        :param current_value: the current value.
+        :return: a new large number boot command.
+        """
+        return MenuLargeNumBootCommand(sub_menu_id=parent_id, menu_item=item, current_value=current_value)
+
+    @staticmethod
+    def new_delta_menu_change_command(correlation_id: CorrelationId, item: Union[MenuItem, int], value: int):
+        """
+        Creates a new delta change command given the menu item and the delta change in value.
+        :param correlation_id: a correlation ID that will be returned in the subsequent acknowledgement.
+        :param item: the item (or its ID) for which to send.
+        :param value: the change in value as a delta of the current value.
+        :return: a new change message.
+        """
+        if isinstance(item, MenuItem):
+            item_id = item.id
+        else:
+            item_id = item
+
+        return MenuChangeCommand(
+            correlation_id=correlation_id,
+            menu_item_id=item_id,
+            change_type=MenuChangeCommand.ChangeType.DELTA,
+            value=str(value),
+        )
+
+    @staticmethod
+    def new_absolute_menu_change_command(correlation_id: CorrelationId, item: Union[MenuItem, int], value: int):
+        """
+        Creates a new absolute change command given the menu item and the absolute change in value.
+        :param correlation_id: a correlation ID that will be returned in the subsequent acknowledgement.
+        :param item: the item (or its ID) for which to send.
+        :param value: the new value.
+        :return: a new change message.
+        """
+        if isinstance(item, MenuItem):
+            item_id = item.id
+        else:
+            item_id = item
+
+        return MenuChangeCommand(
+            correlation_id=correlation_id,
+            menu_item_id=item_id,
+            change_type=MenuChangeCommand.ChangeType.ABSOLUTE,
+            value=str(value),
+        )
+
+    @staticmethod
+    def new_list_response_menu_change_command(
+        correlation_id: CorrelationId, item: Union[MenuItem, int], value: ListResponse
+    ):
+        """
+        Creates a new change command that represents a list item either being selected or invoked.
+        :param correlation_id: a correlation ID that will be returned in the subsequent acknowledgement.
+        :param item: the item (or its ID) for which to send.
+        :param value: the new value, must be a ListResponse.
+        :return: a new change message.
+        """
+        if isinstance(item, MenuItem):
+            item_id = item.id
+        else:
+            item_id = item
+
+        return MenuChangeCommand(
+            correlation_id=correlation_id,
+            menu_item_id=item_id,
+            change_type=MenuChangeCommand.ChangeType.LIST_STATE_CHANGE,
+            value=str(value),
+        )
+
+    @staticmethod
+    def new_absolute_list_menu_change_command(
+        correlation_id: CorrelationId, item: Union[MenuItem, int], values: tuple[str]
+    ):
+        """
+        Creates a new change command that represents a list item either being selected or invoked.
+        :param correlation_id: a correlation ID that will be returned in the subsequent acknowledgement.
+        :param item: the item (or its ID) for which to send.
+        :param value: the new value, must be a ListResponse.
+        :return: a new change message.
+        """
+        if isinstance(item, MenuItem):
+            item_id = item.id
+        else:
+            item_id = item
+
+        return MenuChangeCommand(
+            correlation_id=correlation_id,
+            menu_item_id=item_id,
+            change_type=MenuChangeCommand.ChangeType.ABSOLUTE_LIST,
+            value=values,
+        )
