@@ -12,8 +12,12 @@ from tcmenu.domain.menu_items import (
     EditableTextMenuItem,
     EditableLargeNumberMenuItem,
     MenuItem,
+    ScrollChoiceMenuItem,
+    Rgb32MenuItem,
 )
+from tcmenu.domain.state.current_scroll_position import CurrentScrollPosition
 from tcmenu.domain.state.list_response import ListResponse
+from tcmenu.domain.state.portable_color import PortableColor
 from tcmenu.remote.commands.ack_status import AckStatus
 from tcmenu.remote.commands.dialog_mode import DialogMode
 from tcmenu.remote.commands.menu_acknowledgement_command import MenuAcknowledgementCommand
@@ -29,6 +33,8 @@ from tcmenu.remote.commands.menu_boot_commands import (
     MenuActionBootCommand,
     MenuTextBootCommand,
     MenuLargeNumBootCommand,
+    MenuScrollChoiceBootCommand,
+    MenuRgb32BootCommand,
 )
 from tcmenu.remote.commands.menu_change_command import MenuChangeCommand
 from tcmenu.remote.commands.menu_dialog_command import MenuDialogCommand
@@ -134,19 +140,19 @@ class CommandFactory:
 
     @staticmethod
     def new_runtime_list_boot_command(
-        parent_id: int, item: RuntimeListMenuItem, value: tuple[str]
+        parent_id: int, item: RuntimeListMenuItem, current_value: tuple[str, ...]
     ) -> MenuRuntimeListBootCommand:
         """
         Create a new runtime list boot command.
         :param parent_id: the parent onto which this will be placed.
         :param item: the item itself.
-        :param value: the current value.
+        :param current_value: the current value.
         :return: a new runtime list boot command.
         """
-        return MenuRuntimeListBootCommand(sub_menu_id=parent_id, menu_item=item, current_value=value)
+        return MenuRuntimeListBootCommand(sub_menu_id=parent_id, menu_item=item, current_value=current_value)
 
     @staticmethod
-    def new_menu_sub_boot_command(parent_id: int, item: SubMenuItem) -> MenuSubBootCommand:
+    def new_sub_menu_boot_command(parent_id: int, item: SubMenuItem) -> MenuSubBootCommand:
         """
         Create a new submenu bootstrap command.
         :param parent_id: the parent onto which the item will be placed.
@@ -168,7 +174,7 @@ class CommandFactory:
 
     @staticmethod
     def new_menu_boolean_boot_command(
-        parent_id: int, item: BooleanMenuItem, current_value: int
+        parent_id: int, item: BooleanMenuItem, current_value: bool
     ) -> MenuBooleanBootCommand:
         """
         Create a new boolean bootstrap command.
@@ -180,7 +186,7 @@ class CommandFactory:
         return MenuBooleanBootCommand(sub_menu_id=parent_id, menu_item=item, current_value=current_value)
 
     @staticmethod
-    def new_menu_float_boot_command(parent_id: int, item: FloatMenuItem, current_value: int) -> MenuFloatBootCommand:
+    def new_menu_float_boot_command(parent_id: int, item: FloatMenuItem, current_value: float) -> MenuFloatBootCommand:
         """
         Create a new float bootstrap command.
         :param parent_id: the parent onto which the item will be placed.
@@ -225,6 +231,32 @@ class CommandFactory:
         :return: a new large number boot command.
         """
         return MenuLargeNumBootCommand(sub_menu_id=parent_id, menu_item=item, current_value=current_value)
+
+    @staticmethod
+    def new_menu_scroll_choice_boot_command(
+        parent_id: int, item: ScrollChoiceMenuItem, current_value: CurrentScrollPosition
+    ) -> MenuScrollChoiceBootCommand:
+        """
+        Create a new float bootstrap command.
+        :param parent_id: the parent onto which the item will be placed.
+        :param item: the item itself.
+        :param current_value: the current value.
+        :return: a new float boot command.
+        """
+        return MenuScrollChoiceBootCommand(sub_menu_id=parent_id, menu_item=item, current_value=current_value)
+
+    @staticmethod
+    def new_menu_rgb32_boot_command(
+        parent_id: int, item: Rgb32MenuItem, current_value: PortableColor
+    ) -> MenuRgb32BootCommand:
+        """
+        Create a new float bootstrap command.
+        :param parent_id: the parent onto which the item will be placed.
+        :param item: the item itself.
+        :param current_value: the current value.
+        :return: a new float boot command.
+        """
+        return MenuRgb32BootCommand(sub_menu_id=parent_id, menu_item=item, current_value=current_value)
 
     @staticmethod
     def new_delta_menu_change_command(correlation_id: CorrelationId, item: Union[MenuItem, int], value: int):
@@ -293,7 +325,7 @@ class CommandFactory:
 
     @staticmethod
     def new_absolute_list_menu_change_command(
-        correlation_id: CorrelationId, item: Union[MenuItem, int], values: tuple[str]
+        correlation_id: CorrelationId, item: Union[MenuItem, int], values: tuple[str, ...]
     ):
         """
         Creates a new change command that represents a list item either being selected or invoked.

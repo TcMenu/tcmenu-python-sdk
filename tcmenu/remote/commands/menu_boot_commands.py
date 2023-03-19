@@ -28,8 +28,10 @@ class BootItemMenuCommand(MenuCommand, ABC):
         )
 
     def new_menu_state(self, old_state: Optional[MenuState] = None) -> MenuState:
-        changed = old_state and old_state.value != self.current_value
-        return MenuItemHelper.state_for_menu_item(self.menu_item, self.current_value, changed, old_state.active)
+        changed = old_state.value != self.current_value if old_state else False
+        active = old_state.active if old_state else False
+
+        return MenuItemHelper.state_for_menu_item(self.menu_item, self.current_value, changed, active)
 
 
 @dataclass(frozen=True)

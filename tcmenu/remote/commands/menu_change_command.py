@@ -20,13 +20,9 @@ class MenuChangeCommand(MenuCommand):
 
     correlation_id: CorrelationId
 
-    value: Union[str, tuple[str]]
+    value: Union[str, tuple[str, ...]]
 
     change_type: ChangeType
-
-    @property
-    def change_type(self):
-        return MenuChangeCommand.ChangeType.ABSOLUTE_LIST if type(self.value) == tuple else self.change_type
 
     def command_type(self) -> MessageField:
         return MenuCommandType.CHANGE_INT_FIELD.message_field

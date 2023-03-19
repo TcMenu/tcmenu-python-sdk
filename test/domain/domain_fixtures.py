@@ -1,3 +1,5 @@
+from typing import Optional
+
 from tcmenu.domain.edit_item_type import EditItemType
 from tcmenu.domain.menu_items import (
     EnumMenuItem,
@@ -16,7 +18,7 @@ from tcmenu.persist.json_menu_item_serializer import JsonMenuItemSerializer
 
 class DomainFixtures:
     @staticmethod
-    def an_enum_item(name: str, item_id: int, enums: list[str] = None) -> EnumMenuItem:
+    def an_enum_item(name: str, item_id: int, enums: Optional[tuple[str, ...]] = None) -> EnumMenuItem:
         if enums is None:
             enums = ("Item1", "Item2")
         return EnumMenuItem(name=name, id=item_id, eeprom_address=101, enum_entries=enums)

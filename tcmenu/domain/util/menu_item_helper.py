@@ -191,7 +191,7 @@ class MenuItemHelper:
                 res = len(item.enum_entries) - 1
             return IntegerMenuState(item=item, changed=changed, active=active, value=res)
         elif isinstance(item, SubMenuItem):
-            return BooleanMenuState(item=MenuItem(), changed=changed, active=active, value=False)
+            return BooleanMenuState(item=item, changed=changed, active=active, value=False)
         elif isinstance(item, EditableTextMenuItem):
             return StringMenuState(item=item, changed=changed, active=active, value=str(value))
         elif isinstance(item, ActionMenuItem):
