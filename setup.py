@@ -24,8 +24,8 @@ APP_VERSION = "0.1.0"
 setup(
     name="tcmenu-python",
     version=APP_VERSION,
-    author="Lutemi",
-    author_email="vladimir.zahradnik@lutemi.com",
+    author="Vladimír Záhradník",
+    author_email="vladimir@zahradnik.io",
     description="A series of domain and serialisation components for the TcMenu library.",
     license="Apache 2.0",
     packages=find_packages(),
