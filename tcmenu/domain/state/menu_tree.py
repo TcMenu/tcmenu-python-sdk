@@ -8,7 +8,7 @@ from tcmenu.domain.util.menu_item_helper import MenuItemHelper
 
 class MenuTree:
     """
-    Menu tree holds all the menu items for a specific remote connection or local session. It holds a hierarchy of
+    Menu tree holds all the menu items for a specific tagval connection or local session. It holds a hierarchy of
     items, where items of type submenu can hold other items. As menu items are immutable, the state for each item is
     held separately, and can be accessed from here for each item. There are many helper methods on `MenuItemHelper`
     that make working with menu items easier.

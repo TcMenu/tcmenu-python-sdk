@@ -112,7 +112,7 @@ class CustomBuilderMenuItem(MenuItem):
     in the API. For example, the Remote management menu item and the authentication menu item. They are just regular
     lists when sent remotely.
 
-    IMPORTANT: This menu type is a design time only type, it must never be sent to a remote.
+    IMPORTANT: This menu type is a design time only type, it must never be sent to a tagval.
     """
 
     # noinspection PyArgumentList
