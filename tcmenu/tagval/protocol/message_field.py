@@ -1,4 +1,4 @@
-import typing
+from typing import ClassVar
 from dataclasses import dataclass
 
 
@@ -8,7 +8,7 @@ class MessageField:
 
     second_byte: str
 
-    _ALL_FIELDS_MAP: typing.ClassVar[dict[str, "MessageField"]] = dict()
+    _ALL_FIELDS_MAP: ClassVar[dict[str, "MessageField"]] = dict()
 
     def __post_init__(self):
         if self.id in MessageField._ALL_FIELDS_MAP.keys():
