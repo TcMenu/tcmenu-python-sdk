@@ -5,16 +5,16 @@ from enum import Enum
 class ApiPlatform(Enum):
     """
     Provides a list of the supported platforms as an enumeration. Used during joining
-    to indicate the platform of the connectee.
+    to indicate the platform of the connecting device.
     """
 
     Platform = namedtuple("ApiPlatform", ["key", "description"])
 
     ARDUINO = Platform(0, "Arduino 8-bit")
-    ARDUINO32 = Platform(2, "Arduino 32-bit")
     JAVA_API = Platform(1, "Java API")
-    DNET_API = Platform(3, ".NET API")
-    JAVASCRIPT_CLIENT = Platform(4, "JS API")
+    ARDUINO32 = Platform(2, "Arduino 32-bit")
+    DOTNET_API = Platform(3, ".NET API")
+    JAVASCRIPT_API = Platform(4, "JS API")
     PYTHON_API = Platform(5, "Python API")
 
     def __repr__(self):
