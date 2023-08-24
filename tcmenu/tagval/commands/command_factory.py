@@ -64,13 +64,13 @@ class CommandFactory:
         """
         if not uuid:
             return MenuJoinCommand(
-                my_name=name, platform=ApiPlatform.PYTHON_API, api_version=ProtocolUtil.get_version_from_properties()
+                my_name=name, platform=ApiPlatform.PYTHON_API, api_version=ProtocolUtil.get_module_version_code()
             )
         else:
             return MenuJoinCommand(
                 my_name=name,
                 platform=ApiPlatform.PYTHON_API,
-                api_version=ProtocolUtil.get_version_from_properties(),
+                api_version=ProtocolUtil.get_module_version_code(),
                 app_uuid=uuid,
             )
 

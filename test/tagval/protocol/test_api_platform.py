@@ -1,5 +1,5 @@
 from tcmenu.tagval.protocol.api_platform import ApiPlatform
-
+import pytest
 
 def test_api_platform_arduino():
     api_platform = ApiPlatform.Platform.ARDUINO
@@ -41,3 +41,12 @@ def test_api_platform_python():
 
     assert api_platform.key == 5
     assert api_platform.description == "Python API"
+
+
+def test_api_platform_from_valid_key():
+    assert ApiPlatform.from_key(4) == ApiPlatform.Platform.JAVASCRIPT_API
+
+
+def test_api_platform_from_invalid_key():
+    with pytest.raises(ValueError):
+        ApiPlatform.from_key(7)

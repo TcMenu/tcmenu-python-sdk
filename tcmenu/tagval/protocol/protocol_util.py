@@ -7,10 +7,15 @@ class ProtocolUtil:
     """
 
     @staticmethod
-    def get_version_from_properties() -> int:
+    def get_module_version_code() -> int:
         """
-        Gets and caches the current version from the version properties file.
+        Gets the current version from the version properties file.
         :return: the current version as major * 100 + minor.
         """
-        # TODO: Implement.
-        return 100
+        from tcmenu import __version__
+        major, minor, patch = map(int, __version__.split('.'))
+        return major * 100 + minor
+
+    @staticmethod
+    def from_key_to_api_platform(key: int) -> ApiPlatform:
+        return ApiPlatform.from_key(key)
