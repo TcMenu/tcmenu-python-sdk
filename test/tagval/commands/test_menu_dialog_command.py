@@ -14,7 +14,7 @@ def test_menu_dialog_command():
         message=message,
         button1=MenuButtonType.OK,
         button2=MenuButtonType.NONE,
-        correlation_id=CorrelationId(),
+        correlation_id=CorrelationId.new_correlation(),
     )
 
     assert command.dialog_mode == DialogMode.SHOW

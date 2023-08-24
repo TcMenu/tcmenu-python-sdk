@@ -7,7 +7,9 @@ from tcmenu.tagval.protocol.message_field import MessageField
 
 
 def test_new_delta_menu_change_command():
-    command = CommandFactory.new_delta_menu_change_command(correlation_id=CorrelationId(), item=5, value=10)
+    command = CommandFactory.new_delta_menu_change_command(
+        correlation_id=CorrelationId.new_correlation(), item=5, value=10
+    )
     assert command.change_type == MenuChangeCommand.ChangeType.DELTA
     assert command.menu_item_id == 5
     assert command.value == "10"
@@ -15,7 +17,7 @@ def test_new_delta_menu_change_command():
     assert command.command_type().id == "VC"
 
     command = CommandFactory.new_delta_menu_change_command(
-        correlation_id=CorrelationId(), item=ActionMenuItem(id=8), value=11
+        correlation_id=CorrelationId.new_correlation(), item=ActionMenuItem(id=8), value=11
     )
     assert command.change_type == MenuChangeCommand.ChangeType.DELTA
     assert command.menu_item_id == 8
@@ -25,7 +27,9 @@ def test_new_delta_menu_change_command():
 
 
 def test_new_absolute_menu_change_command():
-    command = CommandFactory.new_absolute_menu_change_command(correlation_id=CorrelationId(), item=15, value=110)
+    command = CommandFactory.new_absolute_menu_change_command(
+        correlation_id=CorrelationId.new_correlation(), item=15, value=110
+    )
     assert command.change_type == MenuChangeCommand.ChangeType.ABSOLUTE
     assert command.menu_item_id == 15
     assert command.value == "110"
@@ -33,7 +37,7 @@ def test_new_absolute_menu_change_command():
     assert command.command_type().id == "VC"
 
     command = CommandFactory.new_absolute_menu_change_command(
-        correlation_id=CorrelationId(), item=ActionMenuItem(id=80), value=-5
+        correlation_id=CorrelationId.new_correlation(), item=ActionMenuItem(id=80), value=-5
     )
     assert command.change_type == MenuChangeCommand.ChangeType.ABSOLUTE
     assert command.menu_item_id == 80
@@ -44,7 +48,7 @@ def test_new_absolute_menu_change_command():
 
 def test_new_list_response_menu_change_command():
     command = CommandFactory.new_list_response_menu_change_command(
-        correlation_id=CorrelationId(), item=22, value=ListResponse.from_string("220:1")
+        correlation_id=CorrelationId.new_correlation(), item=22, value=ListResponse.from_string("220:1")
     )
     assert command.change_type == MenuChangeCommand.ChangeType.LIST_STATE_CHANGE
     assert command.menu_item_id == 22
@@ -53,7 +57,9 @@ def test_new_list_response_menu_change_command():
     assert command.command_type().id == "VC"
 
     command = CommandFactory.new_list_response_menu_change_command(
-        correlation_id=CorrelationId(), item=ActionMenuItem(id=85), value=ListResponse.from_string("230:1")
+        correlation_id=CorrelationId.new_correlation(),
+        item=ActionMenuItem(id=85),
+        value=ListResponse.from_string("230:1"),
     )
     assert command.change_type == MenuChangeCommand.ChangeType.LIST_STATE_CHANGE
     assert command.menu_item_id == 85
@@ -64,7 +70,7 @@ def test_new_list_response_menu_change_command():
 
 def test_new_absolute_list_menu_change_command():
     command = CommandFactory.new_absolute_list_menu_change_command(
-        correlation_id=CorrelationId(), item=22, values=("3", "5", "7", "10")
+        correlation_id=CorrelationId.new_correlation(), item=22, values=("3", "5", "7", "10")
     )
     assert command.change_type == MenuChangeCommand.ChangeType.ABSOLUTE_LIST
     assert command.menu_item_id == 22
@@ -73,7 +79,7 @@ def test_new_absolute_list_menu_change_command():
     assert command.command_type().id == "VC"
 
     command = CommandFactory.new_absolute_list_menu_change_command(
-        correlation_id=CorrelationId(), item=ActionMenuItem(id=55), values=("3", "5", "7", "10")
+        correlation_id=CorrelationId.new_correlation(), item=ActionMenuItem(id=55), values=("3", "5", "7", "10")
     )
     assert command.change_type == MenuChangeCommand.ChangeType.ABSOLUTE_LIST
     assert command.menu_item_id == 55

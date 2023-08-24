@@ -29,6 +29,7 @@ def test_correlation_id_repr():
 
 
 def test_correlation_id_unique():
+    CorrelationId.counter = 0
     correlation_id1 = CorrelationId.new_correlation()
     correlation_id2 = CorrelationId.new_correlation()
 

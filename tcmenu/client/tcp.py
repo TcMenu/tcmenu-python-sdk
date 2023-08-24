@@ -14,18 +14,19 @@ class AsyncTcMenuTcpClient:
     :param client_name: (optional) Name of this client sent as an identification to the remote end.
     :param uuid: (optional) UUID of this instance. If you don't specify this value, it is generated automatically.
     """
+
     def __init__(
-            self,
-            menu_tree: MenuTree,
-            host: str = Defaults.HOST,
-            port: int = Defaults.TCP_PORT,
-            client_name: str = Defaults.CLIENT_NAME,
-            uuid: UUID = uuid4()
+        self,
+        menu_tree: MenuTree,
+        host: str = Defaults.HOST,
+        port: int = Defaults.TCP_PORT,
+        client_name: str = Defaults.CLIENT_NAME,
+        uuid: UUID = uuid4(),
     ) -> None:
         """Initialize Asyncio TcMenu TCP Client."""
         self._menu_tree = menu_tree
-        self._host = host,
-        self._port = port,
+        self._host = (host,)
+        self._port = (port,)
         self._client_name = client_name
         self._uuid = uuid
 
@@ -40,17 +41,18 @@ class TcMenuTcpClient:
     :param client_name: (optional) Name of this client sent as an identification to the remote end.
     :param uuid: (optional) UUID of this instance. If you don't specify this value, it is generated automatically.
     """
+
     def __init__(
-            self,
-            menu_tree: MenuTree,
-            host: str = Defaults.HOST,
-            port: int = Defaults.TCP_PORT,
-            client_name: str = Defaults.CLIENT_NAME,
-            uuid: UUID = uuid4()
+        self,
+        menu_tree: MenuTree,
+        host: str = Defaults.HOST,
+        port: int = Defaults.TCP_PORT,
+        client_name: str = Defaults.CLIENT_NAME,
+        uuid: UUID = uuid4(),
     ) -> None:
         """Initialize TcMenu TCP Client."""
         self._menu_tree = menu_tree
-        self._host = host,
-        self._port = port,
+        self._host = (host,)
+        self._port = (port,)
         self._client_name = client_name
         self._uuid = uuid

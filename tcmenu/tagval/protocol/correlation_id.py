@@ -11,6 +11,7 @@ class CorrelationId:
     are only unique for a time frame of hours to days. They should not be used for any
     purpose requiring persistence that could extend beyond that.
     """
+
     COUNTER_MODULO: ClassVar[int] = 1000000
     counter: ClassVar[int] = 0
     correlation: int
