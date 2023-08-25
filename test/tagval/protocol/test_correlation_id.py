@@ -1,7 +1,4 @@
-import pytest
-
 from tcmenu.tagval.protocol.correlation_id import CorrelationId
-from tcmenu.tagval.protocol.message_field import MessageField
 
 
 def test_correlation_id_from_string():
