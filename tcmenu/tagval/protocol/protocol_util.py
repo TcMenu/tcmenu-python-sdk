@@ -13,7 +13,8 @@ class ProtocolUtil:
         :return: the current version as major * 100 + minor.
         """
         from tcmenu import __version__
-        major, minor, patch = map(int, __version__.split('.'))
+
+        major, minor, patch = map(int, __version__.split("."))
         return major * 100 + minor
 
     @staticmethod

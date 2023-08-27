@@ -1,6 +1,7 @@
 from tcmenu.tagval.protocol.api_platform import ApiPlatform
 import pytest
 
+
 def test_api_platform_arduino():
     api_platform = ApiPlatform.Platform.ARDUINO
 

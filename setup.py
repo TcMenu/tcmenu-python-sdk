@@ -21,8 +21,10 @@ test_requirements = list(
 
 def read_version():
     with open("tcmenu/__init__.py") as f:
-        return next((line.split('=')[1].strip().strip('"').strip("'")
-                     for line in f if line.startswith("__version__")), "0.0.0")
+        return next(
+            (line.split("=")[1].strip().strip('"').strip("'") for line in f if line.startswith("__version__")), "0.0.0"
+        )
+
 
 setup(
     name="tcmenu-python",

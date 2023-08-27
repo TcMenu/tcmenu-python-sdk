@@ -4,7 +4,7 @@ from tcmenu.tagval.protocol.api_platform import ApiPlatform
 
 
 def test_module_version_code(mocker):
-    mocker.patch.object(tcmenu, '__version__', new="3.2.1")
+    mocker.patch.object(tcmenu, "__version__", new="3.2.1")
     assert ProtocolUtil.get_module_version_code() == 302
 
 
