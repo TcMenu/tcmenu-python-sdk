@@ -19,7 +19,7 @@ from tcmenu.domain.state.menu_state import MenuState
 from tcmenu.domain.state.menu_tree import MenuTree
 from tcmenu.domain.state.portable_color import PortableColor
 from tcmenu.domain.util.menu_item_helper import MenuItemHelper
-from tcmenu.tagval.commands.menu_boot_commands import (
+from tcmenu.remote.commands.menu_boot_commands import (
     MenuAnalogBootCommand,
     MenuEnumBootCommand,
     MenuBooleanBootCommand,
