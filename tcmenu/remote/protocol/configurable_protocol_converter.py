@@ -19,7 +19,7 @@ class ConfigurableProtocolConverter(MenuCommandProtocol):
     """
 
     def __init__(self, include_default_processors=False):
-        self._tag_val_incoming_parsers: Dict[MessageField, Callable[[TagValTextParser], None]] = {}
+        self._tag_val_incoming_parsers: Dict[MessageField, Callable[[TagValTextParser], MenuCommand]] = {}
         self._tag_val_output_writers: Dict[MessageField, ConfigurableProtocolConverter.OutputMsgConverterWithType] = {}
         self._raw_incoming_parsers: Dict[MessageField, Callable[[io.BytesIO, int], None]] = {}
         self._raw_output_writers: Dict[MessageField, ConfigurableProtocolConverter.OutputMsgConverterWithType] = {}
@@ -28,7 +28,7 @@ class ConfigurableProtocolConverter(MenuCommandProtocol):
             tag_val_processors = TagValMenuCommandProcessors()
             tag_val_processors.add_handlers_to_protocol(self)
 
-    def add_tag_val_in_processor(self, field: MessageField, processor: Callable[[TagValTextParser], None]):
+    def add_tag_val_in_processor(self, field: MessageField, processor: Callable[[TagValTextParser], MenuCommand]):
         """
         This method adds a tag value message processor that can convert an incoming wire message into a
         command. In this case the processor will take a TagValTextParser and convert that into a
@@ -36,7 +36,7 @@ class ConfigurableProtocolConverter(MenuCommandProtocol):
 
         :param field: the message type to convert.
         :param processor: a conversion function with the following signature:
-        func(parser: TagValTextParser) -> None
+        func(parser: TagValTextParser) -> Type[MenuCommand]
         """
         self._tag_val_incoming_parsers[field] = processor
 
