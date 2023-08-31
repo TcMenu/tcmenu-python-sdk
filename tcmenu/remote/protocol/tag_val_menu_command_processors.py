@@ -24,13 +24,12 @@ from tcmenu.remote.commands.menu_dialog_command import MenuDialogCommand
 from tcmenu.remote.commands.menu_heartbeat_command import MenuHeartbeatCommand
 from tcmenu.remote.commands.menu_join_command import MenuJoinCommand
 from tcmenu.remote.commands.menu_pairing_command import MenuPairingCommand
-from tcmenu.remote.protocol.configurable_protocol_converter import ConfigurableProtocolConverter
 from tcmenu.remote.protocol.tag_val_text_parser import TagValTextParser
 
 
 class TagValMenuCommandProcessors:
     @staticmethod
-    def add_handlers_to_protocol(proto: ConfigurableProtocolConverter):
+    def add_handlers_to_protocol(proto: "ConfigurableProtocolConverter"):
         # Input processors
         proto.add_tag_val_in_processor(MenuCommandType.JOIN.message_field, TagValMenuCommandProcessors._process_join)
         proto.add_tag_val_in_processor(

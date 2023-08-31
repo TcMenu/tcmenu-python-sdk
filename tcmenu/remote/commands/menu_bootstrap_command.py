@@ -15,6 +15,7 @@ class MenuBootstrapCommand(MenuCommand):
 
     boot_type: BootType
 
+    @property
     def command_type(self) -> MessageField:
         return MenuCommandType.BOOTSTRAP.message_field
 

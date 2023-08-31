@@ -12,6 +12,7 @@ class MenuPairingCommand(MenuCommand):
 
     uuid: UUID
 
+    @property
     def command_type(self) -> MessageField:
         return MenuCommandType.PAIRING_REQUEST.message_field
 

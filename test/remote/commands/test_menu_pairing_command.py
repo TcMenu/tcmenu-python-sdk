@@ -11,5 +11,5 @@ def test_menu_pairing_command():
     command = CommandFactory.new_pairing_command(name=phone_name, uuid=phone_uuid)
     assert command.name == phone_name
     assert command.uuid == phone_uuid
-    assert isinstance(command.command_type(), MessageField) is True
-    assert command.command_type().id == "PR"
+    assert isinstance(command.command_type, MessageField) is True
+    assert command.command_type.id == "PR"

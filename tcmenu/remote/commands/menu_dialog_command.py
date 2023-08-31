@@ -22,6 +22,7 @@ class MenuDialogCommand(MenuCommand):
 
     correlation_id: CorrelationId
 
+    @property
     def command_type(self) -> MessageField:
         return MenuCommandType.DIALOG_UPDATE.message_field
 

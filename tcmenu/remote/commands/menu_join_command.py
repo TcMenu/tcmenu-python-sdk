@@ -17,6 +17,9 @@ class MenuJoinCommand(MenuCommand):
 
     app_uuid: uuid.UUID = uuid.uuid4()
 
+    serial_number: int = 999999999
+
+    @property
     def command_type(self) -> MessageField:
         return MenuCommandType.JOIN.message_field
 
@@ -27,5 +30,6 @@ class MenuJoinCommand(MenuCommand):
             f" api_ver={self.api_version},"
             f" platform={self.platform},"
             f" uuid={self.app_uuid}"
+            f" (S/N={self.serial_number})"
             f" }}"
         )

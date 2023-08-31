@@ -22,5 +22,5 @@ def test_menu_dialog_command():
     assert command.buffer == message
     assert command.button1 == MenuButtonType.OK
     assert command.button2 == MenuButtonType.NONE
-    assert isinstance(command.command_type(), MessageField) is True
-    assert command.command_type().id == "DM"
+    assert isinstance(command.command_type, MessageField) is True
+    assert command.command_type.id == "DM"

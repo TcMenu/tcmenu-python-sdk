@@ -61,8 +61,8 @@ def test_new_action_boot_command():
     assert command.menu_item == item
     assert command.current_value is False
     assert command.sub_menu_id == 5
-    assert isinstance(command.command_type(), MessageField) is True
-    assert command.command_type().id == "BC"
+    assert isinstance(command.command_type, MessageField) is True
+    assert command.command_type.id == "BC"
 
 
 def test_new_analog_boot_command():
@@ -72,8 +72,8 @@ def test_new_analog_boot_command():
     assert command.menu_item == item
     assert command.current_value == 100
     assert command.sub_menu_id == 0
-    assert isinstance(command.command_type(), MessageField) is True
-    assert command.command_type().id == "BA"
+    assert isinstance(command.command_type, MessageField) is True
+    assert command.command_type.id == "BA"
 
 
 def test_new_enum_boot_command():
@@ -83,8 +83,8 @@ def test_new_enum_boot_command():
     assert command.menu_item == item
     assert command.current_value == 1
     assert command.sub_menu_id == 0
-    assert isinstance(command.command_type(), MessageField) is True
-    assert command.command_type().id == "BE"
+    assert isinstance(command.command_type, MessageField) is True
+    assert command.command_type.id == "BE"
 
 
 def test_new_boolean_boot_command():
@@ -94,8 +94,8 @@ def test_new_boolean_boot_command():
     assert command.menu_item == item
     assert command.current_value is True
     assert command.sub_menu_id == 0
-    assert isinstance(command.command_type(), MessageField) is True
-    assert command.command_type().id == "BB"
+    assert isinstance(command.command_type, MessageField) is True
+    assert command.command_type.id == "BB"
 
 
 def test_new_float_boot_command():
@@ -105,8 +105,8 @@ def test_new_float_boot_command():
     assert command.menu_item == item
     assert command.current_value == 11.0
     assert command.sub_menu_id == 0
-    assert isinstance(command.command_type(), MessageField) is True
-    assert command.command_type().id == "BF"
+    assert isinstance(command.command_type, MessageField) is True
+    assert command.command_type.id == "BF"
 
 
 def test_new_scroll_choice_boot_command():
@@ -118,8 +118,8 @@ def test_new_scroll_choice_boot_command():
     assert command.menu_item == item
     assert isinstance(command.current_value, CurrentScrollPosition)
     assert command.sub_menu_id == 0
-    assert isinstance(command.command_type(), MessageField) is True
-    assert command.command_type().id == "BZ"
+    assert isinstance(command.command_type, MessageField) is True
+    assert command.command_type.id == "BZ"
 
 
 def test_new_rgb32_boot_command():
@@ -129,8 +129,8 @@ def test_new_rgb32_boot_command():
     assert command.menu_item == item
     assert isinstance(command.current_value, PortableColor)
     assert command.sub_menu_id == 0
-    assert isinstance(command.command_type(), MessageField) is True
-    assert command.command_type().id == "BK"
+    assert isinstance(command.command_type, MessageField) is True
+    assert command.command_type.id == "BK"
 
 
 def test_new_large_num_boot_command():
@@ -140,8 +140,8 @@ def test_new_large_num_boot_command():
     assert command.menu_item == item
     assert command.current_value == 1000
     assert command.sub_menu_id == 0
-    assert isinstance(command.command_type(), MessageField) is True
-    assert command.command_type().id == "BN"
+    assert isinstance(command.command_type, MessageField) is True
+    assert command.command_type.id == "BN"
 
 
 def test_new_text_boot_command():
@@ -151,8 +151,8 @@ def test_new_text_boot_command():
     assert command.menu_item == item
     assert command.current_value == "Main menu"
     assert command.sub_menu_id == 0
-    assert isinstance(command.command_type(), MessageField) is True
-    assert command.command_type().id == "BT"
+    assert isinstance(command.command_type, MessageField) is True
+    assert command.command_type.id == "BT"
 
 
 def test_new_runtime_list_boot_command():
@@ -162,8 +162,8 @@ def test_new_runtime_list_boot_command():
     assert command.menu_item == item
     assert command.current_value == ("Item1", "Item2")
     assert command.sub_menu_id == 0
-    assert isinstance(command.command_type(), MessageField) is True
-    assert command.command_type().id == "BL"
+    assert isinstance(command.command_type, MessageField) is True
+    assert command.command_type.id == "BL"
 
 
 def test_new_sub_menu_boot_command():
@@ -173,5 +173,5 @@ def test_new_sub_menu_boot_command():
     assert command.menu_item == item
     assert command.current_value is False
     assert command.sub_menu_id == 0
-    assert isinstance(command.command_type(), MessageField) is True
-    assert command.command_type().id == "BM"
+    assert isinstance(command.command_type, MessageField) is True
+    assert command.command_type.id == "BM"

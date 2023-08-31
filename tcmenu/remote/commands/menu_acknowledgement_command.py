@@ -13,6 +13,7 @@ class MenuAcknowledgementCommand(MenuCommand):
 
     ack_status: AckStatus
 
+    @property
     def command_type(self) -> MessageField:
         return MenuCommandType.ACKNOWLEDGEMENT.message_field
 

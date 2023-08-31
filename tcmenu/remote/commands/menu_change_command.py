@@ -24,6 +24,7 @@ class MenuChangeCommand(MenuCommand):
 
     change_type: ChangeType
 
+    @property
     def command_type(self) -> MessageField:
         return MenuCommandType.CHANGE_INT_FIELD.message_field
 

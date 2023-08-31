@@ -18,6 +18,7 @@ class MenuHeartbeatCommand(MenuCommand):
 
     mode: HeartbeatMode
 
+    @property
     def command_type(self) -> MessageField:
         return MenuCommandType.HEARTBEAT.message_field
 

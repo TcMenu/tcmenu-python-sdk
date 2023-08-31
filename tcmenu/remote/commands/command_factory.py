@@ -53,26 +53,31 @@ class CommandFactory:
     """
 
     @staticmethod
-    def new_join_command(name: str, uuid: Optional[UUID] = None) -> MenuJoinCommand:
+    def new_join_command(
+        name: str, uuid: Optional[UUID] = None, serial_number: Optional[int] = None
+    ) -> MenuJoinCommand:
         """
         Create a new join command. You can either provide a fixed UUID
         or a random UUID will be generated for you.
 
         :param name: the name that the tagval will show for the connection.
         :param uuid: optional; the UUID that identifies our client.
+        :param serial_number: optional; the device serial number.
         :return: join command.
         """
-        if not uuid:
-            return MenuJoinCommand(
-                my_name=name, platform=ApiPlatform.PYTHON_API, api_version=ProtocolUtil.get_module_version_code()
-            )
-        else:
-            return MenuJoinCommand(
-                my_name=name,
-                platform=ApiPlatform.PYTHON_API,
-                api_version=ProtocolUtil.get_module_version_code(),
-                app_uuid=uuid,
-            )
+        join_kwargs = {
+            "my_name": name,
+            "platform": ApiPlatform.PYTHON_API,
+            "api_version": ProtocolUtil.get_module_version_code(),
+        }
+
+        if uuid:
+            join_kwargs["app_uuid"] = uuid
+
+        if serial_number:
+            join_kwargs["serial_number"] = serial_number
+
+        return MenuJoinCommand(**join_kwargs)
 
     @staticmethod
     def new_heartbeat_command(frequency: int, mode: MenuHeartbeatCommand.HeartbeatMode) -> MenuHeartbeatCommand:

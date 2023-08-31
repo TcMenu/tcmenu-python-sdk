@@ -36,66 +36,77 @@ class BootItemMenuCommand(MenuCommand, ABC):
 
 @dataclass(frozen=True)
 class MenuActionBootCommand(BootItemMenuCommand):
+    @property
     def command_type(self) -> MessageField:
         return MenuCommandType.ACTION_BOOT_ITEM.message_field
 
 
 @dataclass(frozen=True)
 class MenuAnalogBootCommand(BootItemMenuCommand):
+    @property
     def command_type(self) -> MessageField:
         return MenuCommandType.ANALOG_BOOT_ITEM.message_field
 
 
 @dataclass(frozen=True)
 class MenuEnumBootCommand(BootItemMenuCommand):
+    @property
     def command_type(self) -> MessageField:
         return MenuCommandType.ENUM_BOOT_ITEM.message_field
 
 
 @dataclass(frozen=True)
 class MenuBooleanBootCommand(BootItemMenuCommand):
+    @property
     def command_type(self) -> MessageField:
         return MenuCommandType.BOOLEAN_BOOT_ITEM.message_field
 
 
 @dataclass(frozen=True)
 class MenuFloatBootCommand(BootItemMenuCommand):
+    @property
     def command_type(self) -> MessageField:
         return MenuCommandType.FLOAT_BOOT_ITEM.message_field
 
 
 @dataclass(frozen=True)
 class MenuScrollChoiceBootCommand(BootItemMenuCommand):
+    @property
     def command_type(self) -> MessageField:
         return MenuCommandType.BOOT_SCROLL_CHOICE.message_field
 
 
 @dataclass(frozen=True)
 class MenuRgb32BootCommand(BootItemMenuCommand):
+    @property
     def command_type(self) -> MessageField:
         return MenuCommandType.BOOT_RGB_COLOR.message_field
 
 
 @dataclass(frozen=True)
 class MenuLargeNumBootCommand(BootItemMenuCommand):
+    @property
     def command_type(self) -> MessageField:
         return MenuCommandType.LARGE_NUM_BOOT_ITEM.message_field
 
 
 @dataclass(frozen=True)
 class MenuTextBootCommand(BootItemMenuCommand):
+    @property
     def command_type(self) -> MessageField:
         return MenuCommandType.TEXT_BOOT_ITEM.message_field
 
 
 @dataclass(frozen=True)
 class MenuRuntimeListBootCommand(BootItemMenuCommand):
+    @property
     def command_type(self) -> MessageField:
         return MenuCommandType.RUNTIME_LIST_BOOT.message_field
 
 
 @dataclass(frozen=True)
 class MenuSubBootCommand(BootItemMenuCommand):
+    @property
     def command_type(self) -> MessageField:
         return MenuCommandType.SUBMENU_BOOT_ITEM.message_field
 
