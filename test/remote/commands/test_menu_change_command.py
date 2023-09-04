@@ -86,3 +86,12 @@ def test_new_absolute_list_menu_change_command():
     assert isinstance(command.value, tuple)
     assert isinstance(command.command_type, MessageField) is True
     assert command.command_type.id == "VC"
+
+
+def test_change_type_from_id():
+    assert MenuChangeCommand.ChangeType.from_id(0) == MenuChangeCommand.ChangeType.DELTA
+    assert MenuChangeCommand.ChangeType.from_id(1) == MenuChangeCommand.ChangeType.ABSOLUTE
+    assert MenuChangeCommand.ChangeType.from_id(2) == MenuChangeCommand.ChangeType.ABSOLUTE_LIST
+    assert MenuChangeCommand.ChangeType.from_id(3) == MenuChangeCommand.ChangeType.LIST_STATE_CHANGE
+    assert MenuChangeCommand.ChangeType.from_id(4) == MenuChangeCommand.ChangeType.DELTA
+    assert MenuChangeCommand.ChangeType.from_id(1000) == MenuChangeCommand.ChangeType.DELTA

@@ -47,3 +47,6 @@ class ListResponse:
             return ListResponse(row, response_type)
 
         return None
+
+
+ListResponse.EMPTY = ListResponse(0, ListResponse.ResponseType.SELECT_ITEM)

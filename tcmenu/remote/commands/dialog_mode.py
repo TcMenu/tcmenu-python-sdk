@@ -15,3 +15,12 @@ class DialogMode(Enum):
 
     """ Perform the following action on the dialog. """
     ACTION = auto()
+
+    @staticmethod
+    def from_string(mode: str) -> "DialogMode":
+        if mode == "S":
+            return DialogMode.SHOW
+        elif mode == "H":
+            return DialogMode.HIDE
+        else:
+            return DialogMode.ACTION

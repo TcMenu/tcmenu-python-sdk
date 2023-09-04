@@ -32,3 +32,10 @@ class MenuButtonType(Enum):
     @property
     def type_value(self) -> int:
         return self._value_.type_value
+
+    @staticmethod
+    def from_id(button_id: int):
+        for button_type in MenuButtonType:
+            if button_type.type_value == button_id:
+                return button_type
+        return MenuButtonType.NONE

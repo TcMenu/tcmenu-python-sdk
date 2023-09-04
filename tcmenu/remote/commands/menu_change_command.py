@@ -16,6 +16,11 @@ class MenuChangeCommand(MenuCommand):
         ABSOLUTE_LIST = 2
         LIST_STATE_CHANGE = 3
 
+        @classmethod
+        def from_id(cls, id_: int):
+            """Retrieve ChangeType based on numeric ID with a fallback to DELTA."""
+            return cls(id_) if id_ in cls._value2member_map_ else cls.DELTA
+
     menu_item_id: int
 
     correlation_id: CorrelationId

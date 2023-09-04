@@ -98,6 +98,15 @@ def test_new_boolean_boot_command():
     assert command.command_type.id == "BB"
 
 
+def test_boolean_naming_type():
+    assert BooleanMenuItem.BooleanNaming.TRUE_FALSE == BooleanMenuItem.BooleanNaming.from_id(0)
+    assert BooleanMenuItem.BooleanNaming.ON_OFF == BooleanMenuItem.BooleanNaming.from_id(1)
+    assert BooleanMenuItem.BooleanNaming.YES_NO == BooleanMenuItem.BooleanNaming.from_id(2)
+    assert BooleanMenuItem.BooleanNaming.CHECKBOX == BooleanMenuItem.BooleanNaming.from_id(3)
+    assert BooleanMenuItem.BooleanNaming.TRUE_FALSE == BooleanMenuItem.BooleanNaming.from_id(4)
+    assert BooleanMenuItem.BooleanNaming.TRUE_FALSE == BooleanMenuItem.BooleanNaming.from_id(100)
+
+
 def test_new_float_boot_command():
     item = DomainFixtures.a_float_menu("Humidity", 10)
     command = CommandFactory.new_menu_float_boot_command(parent_id=0, item=item, current_value=11.0)

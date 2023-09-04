@@ -24,3 +24,12 @@ def test_protocol_num_unsupported_command():
     with pytest.raises(ValueError):
         # noinspection PyStatementEffect
         CommandProtocol(10).protocol_num
+
+
+def test_from_protocol_id():
+    """
+    Always expect RAW protocol when the ID doesn't match with TAG_VAL.
+    """
+    assert CommandProtocol.RAW_BIN_PROTOCOL == CommandProtocol.from_protocol_id(0)
+    assert CommandProtocol.TAG_VAL_PROTOCOL == CommandProtocol.from_protocol_id(1)
+    assert CommandProtocol.RAW_BIN_PROTOCOL == CommandProtocol.from_protocol_id(100)

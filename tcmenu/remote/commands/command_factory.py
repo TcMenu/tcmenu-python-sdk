@@ -226,7 +226,7 @@ class CommandFactory:
 
     @staticmethod
     def new_menu_large_item_boot_command(
-        parent_id: int, item: EditableLargeNumberMenuItem, current_value: int
+        parent_id: int, item: EditableLargeNumberMenuItem, current_value: float
     ) -> MenuLargeNumBootCommand:
         """
         Create a new large number bootstrap command.

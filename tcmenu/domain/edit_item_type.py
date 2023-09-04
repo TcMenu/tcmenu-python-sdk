@@ -39,3 +39,7 @@ class EditItemType(Enum):
     @property
     def message_id(self):
         return self._value_
+
+    @staticmethod
+    def from_id(item_id: int):
+        return EditItemType(item_id) if item_id in (item.value for item in EditItemType) else EditItemType.PLAIN_TEXT

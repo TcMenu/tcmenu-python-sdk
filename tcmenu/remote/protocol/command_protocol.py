@@ -9,3 +9,7 @@ class CommandProtocol(Enum):
     @property
     def protocol_num(self) -> bytes:
         return (self.value & 0xFF).to_bytes(1, "big")
+
+    @staticmethod
+    def from_protocol_id(num: int) -> "CommandProtocol":
+        return CommandProtocol.TAG_VAL_PROTOCOL if num == 1 else CommandProtocol.RAW_BIN_PROTOCOL

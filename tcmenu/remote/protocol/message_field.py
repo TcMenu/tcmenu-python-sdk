@@ -8,12 +8,12 @@ class MessageField:
 
     second_byte: str
 
-    _ALL_FIELDS_MAP: ClassVar[dict[str, "MessageField"]] = dict()
+    _ALL_FIELDS_DICT: ClassVar[dict[str, "MessageField"]] = {}
 
     def __post_init__(self):
-        if self.id in MessageField._ALL_FIELDS_MAP.keys():
+        if self.id in MessageField._ALL_FIELDS_DICT.keys():
             raise ValueError(f"Duplicate key: {self.id}")
-        MessageField._ALL_FIELDS_MAP[self.id] = self
+        MessageField._ALL_FIELDS_DICT[self.id] = self
 
     @property
     def high(self) -> str:
@@ -29,8 +29,8 @@ class MessageField:
 
     @staticmethod
     def from_id(field_id: str) -> "MessageField":
-        if field_id in MessageField._ALL_FIELDS_MAP.keys():
-            return MessageField._ALL_FIELDS_MAP[field_id]
+        if field_id in MessageField._ALL_FIELDS_DICT.keys():
+            return MessageField._ALL_FIELDS_DICT[field_id]
         else:
             raise ValueError("An unknown message type was generated.")
 

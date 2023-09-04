@@ -40,3 +40,11 @@ class AckStatus(Enum):
     def is_error(self) -> bool:
         """:return: True if the status code is an error, otherwise False."""
         return self._value_.status_code > 0
+
+    @classmethod
+    def from_status_code(cls, status_code: int):
+        """Retrieve status based on numeric code."""
+        for status in cls:
+            if status.status_code == status_code:
+                return status
+        return AckStatus.UNKNOWN_ERROR

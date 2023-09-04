@@ -96,10 +96,18 @@ class BooleanMenuItem(MenuItem):
 
     # noinspection PyArgumentList
     class BooleanNaming(Enum):
-        ON_OFF = auto()
-        YES_NO = auto()
-        TRUE_FALSE = auto()
-        CHECKBOX = auto()
+        TRUE_FALSE = 0
+        ON_OFF = 1
+        YES_NO = 2
+        CHECKBOX = 3
+
+        @staticmethod
+        def from_id(item_id: int):
+            return (
+                BooleanMenuItem.BooleanNaming(item_id)
+                if item_id in (item.value for item in BooleanMenuItem.BooleanNaming)
+                else BooleanMenuItem.BooleanNaming.TRUE_FALSE
+            )
 
     """the naming for this boolean, that describes how to render the true/false choice."""
     naming: BooleanNaming = BooleanNaming.ON_OFF

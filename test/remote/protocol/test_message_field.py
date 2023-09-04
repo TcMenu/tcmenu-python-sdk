@@ -3,8 +3,25 @@ import pytest
 from tcmenu.remote.protocol.message_field import MessageField
 
 
+# noinspection PyProtectedMember
+@pytest.fixture(autouse=True)
+def message_field_fixture():
+    """
+    This code temporarily changes internal dictionary of a MessageField.
+    We have to ensure that original entries are set back to avoid
+    test failures.
+    """
+    # Setup
+    entries: dict[str, "MessageField"] = MessageField._ALL_FIELDS_DICT.copy()
+    MessageField._ALL_FIELDS_DICT.clear()
+
+    yield
+
+    # Teardown
+    MessageField._ALL_FIELDS_DICT = entries
+
+
 def test_message_field():
-    MessageField._ALL_FIELDS_MAP.clear()
     message = MessageField("R", "V")
 
     assert message.first_byte is "R"
@@ -16,7 +33,6 @@ def test_message_field():
 
 
 def test_message_field_duplicate_entry():
-    MessageField._ALL_FIELDS_MAP.clear()
     MessageField("A", "A")
 
     with pytest.raises(ValueError):
@@ -24,7 +40,6 @@ def test_message_field_duplicate_entry():
 
 
 def test_message_from_id():
-    MessageField._ALL_FIELDS_MAP.clear()
     MessageField("A", "A")
 
     message = MessageField.from_id("AA")

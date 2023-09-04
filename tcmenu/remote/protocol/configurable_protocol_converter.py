@@ -1,6 +1,6 @@
 import io
 import logging
-from typing import Type, Callable, Dict, Union
+from typing import Type, Callable, Dict, Union, TypeVar, Generic
 
 from tcmenu.remote.commands.menu_command import MenuCommand
 from tcmenu.remote.menu_command_protocol import MenuCommandProtocol
@@ -12,6 +12,9 @@ from tcmenu.remote.protocol.tag_val_text_parser import TagValTextParser
 from tcmenu.remote.protocol.tc_protocol_exception import TcProtocolException
 
 
+T = TypeVar("T", bound=MenuCommand)
+
+
 class ConfigurableProtocolConverter(MenuCommandProtocol):
     """
     An implementation of the menu command protocol interface that is configurable. By default, it can
@@ -21,10 +24,10 @@ class ConfigurableProtocolConverter(MenuCommandProtocol):
     """
 
     def __init__(self, include_default_processors=False):
-        self._tag_val_incoming_parsers: Dict[MessageField, Callable[[TagValTextParser], MenuCommand]] = {}
-        self._tag_val_output_writers: Dict[MessageField, Callable[[io.StringIO, MenuCommand], None]] = {}
-        self._raw_incoming_parsers: Dict[MessageField, Callable[[io.BytesIO, int], MenuCommand]] = {}
-        self._raw_output_writers: Dict[MessageField, Callable[[io.BytesIO, MenuCommand], None]] = {}
+        self._tag_val_incoming_parsers: Dict[MessageField, Callable[[TagValTextParser], Generic[T]]] = {}
+        self._tag_val_output_writers: Dict[MessageField, Callable[[io.StringIO, Generic[T]], None]] = {}
+        self._raw_incoming_parsers: Dict[MessageField, Callable[[io.BytesIO, int], Generic[T]]] = {}
+        self._raw_output_writers: Dict[MessageField, Callable[[io.BytesIO, Generic[T]], None]] = {}
 
         if include_default_processors:
             tag_val_processors = TagValMenuCommandProcessors()
@@ -43,7 +46,7 @@ class ConfigurableProtocolConverter(MenuCommandProtocol):
         self._tag_val_incoming_parsers[field] = processor
 
     def add_tag_val_out_processor(
-        self, field: MessageField, processor: Callable[[io.StringIO, MenuCommand], None], clazz: Type[MenuCommand]
+        self, field: MessageField, processor: Callable[[io.StringIO, Generic[T]], None], clazz: Type[MenuCommand]
     ):
         """
         This method adds a tag value message processor that can convert a MenuCommand
@@ -80,9 +83,9 @@ class ConfigurableProtocolConverter(MenuCommandProtocol):
         """
         self._raw_output_writers[field] = self._output_msg_converter_with_type(processor, clazz)
 
-    def from_channel(self, buffer: io.BytesIO) -> MenuCommand:
+    def from_channel(self, buffer: io.BytesIO) -> Generic[T]:
         proto_id = buffer.read(1)[0]
-        protocol = CommandProtocol(proto_id).value
+        protocol = CommandProtocol.from_protocol_id(proto_id)
 
         msg_type = self._get_msg_type_from_buffer(buffer)
         cmd_type = MessageField.from_id(msg_type)
@@ -94,13 +97,13 @@ class ConfigurableProtocolConverter(MenuCommandProtocol):
             parser = TagValTextParser(buffer)
             logging.debug(f"Protocol convert in: {parser}")
             return self._tag_val_incoming_parsers[cmd_type](parser)
-        elif protocol == CommandProtocol.RAW_BIN_PROTOCOL and cmd_type in self._raw_incoming_parsers:
+        elif protocol.value == CommandProtocol.RAW_BIN_PROTOCOL and cmd_type in self._raw_incoming_parsers:
             length = int.from_bytes(buffer.read(4), byteorder="big")
             return self._raw_incoming_parsers[cmd_type](buffer, length)
         else:
-            raise TcProtocolException(f"Unknown protocol used in message {protocol}")
+            raise TcProtocolException(f"Unknown protocol used in message: {protocol.name}")
 
-    def to_channel(self, buffer: io.BytesIO, command: MenuCommand) -> None:
+    def to_channel(self, buffer: io.BytesIO, command: Generic[T]) -> None:
         raw_processor = self._raw_output_writers.get(command.command_type)
 
         if raw_processor:
@@ -116,7 +119,7 @@ class ConfigurableProtocolConverter(MenuCommandProtocol):
         else:
             raise TcProtocolException(f"Message not processed: {command.command_type}")
 
-    def get_protocol_for_cmd(self, command: MenuCommand) -> CommandProtocol:
+    def get_protocol_for_cmd(self, command: Generic[T]) -> CommandProtocol:
         return (
             CommandProtocol.TAG_VAL_PROTOCOL
             if command.command_type in self._tag_val_output_writers
@@ -124,7 +127,7 @@ class ConfigurableProtocolConverter(MenuCommandProtocol):
         )
 
     @staticmethod
-    def _write_standard_header(buffer: io.BytesIO, command: MenuCommand, protocol: CommandProtocol) -> None:
+    def _write_standard_header(buffer: io.BytesIO, command: Generic[T], protocol: CommandProtocol) -> None:
         buffer.write(MenuCommandProtocol.PROTO_START_OF_MSG)
         buffer.write(protocol.protocol_num)
         buffer.write(command.command_type.high[0].encode("utf-8"))
@@ -139,7 +142,7 @@ class ConfigurableProtocolConverter(MenuCommandProtocol):
 
     @staticmethod
     def _output_msg_converter_with_type(
-        processor: Union[Callable[[io.StringIO, MenuCommand], None], Callable[[io.BytesIO, MenuCommand], None]],
+        processor: Union[Callable[[io.StringIO, Generic[T]], None], Callable[[io.BytesIO, Generic[T]], None]],
         the_clazz: Type[MenuCommand],
     ):
         """
@@ -155,7 +158,7 @@ class ConfigurableProtocolConverter(MenuCommandProtocol):
         any other MenuCommand instance, we will raise an error.
         """
 
-        def apply(buffer: Union[io.StringIO, io.BytesIO], command: MenuCommand):
+        def apply(buffer: Union[io.StringIO, io.BytesIO], command: Generic[T]):
             if type(command) is not the_clazz:
                 raise ValueError("Wrong type of command provided")
             processor(buffer, command)
