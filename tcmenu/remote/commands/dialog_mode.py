@@ -1,4 +1,4 @@
-from enum import Enum, auto
+from enum import Enum
 
 
 # noinspection PyArgumentList
@@ -8,19 +8,17 @@ class DialogMode(Enum):
     """
 
     """ The dialog is to be shown. """
-    SHOW = auto()
+    SHOW = "S"
 
     """ The dialog is to be hidden. """
-    HIDE = auto()
+    HIDE = "H"
 
     """ Perform the following action on the dialog. """
-    ACTION = auto()
+    ACTION = "A"
 
     @staticmethod
     def from_string(mode: str) -> "DialogMode":
-        if mode == "S":
-            return DialogMode.SHOW
-        elif mode == "H":
-            return DialogMode.HIDE
-        else:
+        try:
+            return DialogMode(mode)
+        except ValueError:
             return DialogMode.ACTION

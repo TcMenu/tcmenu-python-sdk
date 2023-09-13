@@ -97,7 +97,7 @@ class ConfigurableProtocolConverter(MenuCommandProtocol):
             parser = TagValTextParser(buffer)
             logging.debug(f"Protocol convert in: {parser}")
             return self._tag_val_incoming_parsers[cmd_type](parser)
-        elif protocol.value == CommandProtocol.RAW_BIN_PROTOCOL and cmd_type in self._raw_incoming_parsers:
+        elif protocol.value == CommandProtocol.RAW_BIN_PROTOCOL.value and cmd_type in self._raw_incoming_parsers:
             length = int.from_bytes(buffer.read(4), byteorder="big")
             return self._raw_incoming_parsers[cmd_type](buffer, length)
         else:

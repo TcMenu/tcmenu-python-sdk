@@ -2,7 +2,7 @@ from abc import ABC
 from dataclasses import dataclass
 from typing import Any, Optional, TypeVar, Generic
 
-from tcmenu.domain.menu_items import MenuItem, AnalogMenuItem
+from tcmenu.domain.menu_items import MenuItem
 from tcmenu.domain.state.menu_state import MenuState
 from tcmenu.domain.util.menu_item_helper import MenuItemHelper
 from tcmenu.remote.commands.menu_command import MenuCommand

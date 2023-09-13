@@ -1,12 +1,18 @@
 import io
+import struct
 import uuid
-from typing import Generic, TypeVar
+from dataclasses import replace, dataclass
+from typing import Generic, TypeVar, ClassVar
 
 import pytest
 
 from tcmenu.domain.edit_item_type import EditItemType
-from tcmenu.domain.menu_items import BooleanMenuItem
+from tcmenu.domain.menu_items import BooleanMenuItem, FloatMenuItem, Rgb32MenuItem, ScrollChoiceMenuItem
+from tcmenu.domain.state.current_scroll_position import CurrentScrollPosition
+from tcmenu.domain.state.list_response import ListResponse
+from tcmenu.domain.state.portable_color import PortableColor
 from tcmenu.remote.commands.ack_status import AckStatus
+from tcmenu.remote.commands.command_factory import CommandFactory
 from tcmenu.remote.commands.dialog_mode import DialogMode
 from tcmenu.remote.commands.menu_acknowledgement_command import MenuAcknowledgementCommand
 from tcmenu.remote.commands.menu_boot_commands import (
@@ -31,12 +37,81 @@ from tcmenu.remote.commands.menu_dialog_command import MenuDialogCommand
 from tcmenu.remote.commands.menu_heartbeat_command import MenuHeartbeatCommand
 from tcmenu.remote.commands.menu_join_command import MenuJoinCommand
 from tcmenu.remote.commands.menu_pairing_command import MenuPairingCommand
+from tcmenu.remote.menu_command_protocol import MenuCommandProtocol
 from tcmenu.remote.protocol.api_platform import ApiPlatform
 from tcmenu.remote.protocol.command_protocol import CommandProtocol
 from tcmenu.remote.protocol.configurable_protocol_converter import ConfigurableProtocolConverter
+from tcmenu.remote.protocol.correlation_id import CorrelationId
 from tcmenu.remote.protocol.message_field import MessageField
+from tcmenu.remote.protocol.tag_val_menu_command_processors import TagValMenuCommandProcessors
+from tcmenu.remote.protocol.tag_val_text_parser import TagValTextParser
+from test.domain.domain_fixtures import DomainFixtures
 
 protocol = ConfigurableProtocolConverter(include_default_processors=True)
+
+
+# Custom spanner command to test serialization and deserialization of a user-defined command.
+@dataclass(frozen=True)
+class MenuSpannerCommand(MenuCommand):
+    SPANNER_MSG_TYPE: ClassVar[MessageField] = MessageField("S", "Z")
+
+    metric_size: int
+
+    make: str
+
+    @property
+    def command_type(self) -> MessageField:
+        return MenuSpannerCommand.SPANNER_MSG_TYPE
+
+
+def process_spanner_command(parser: TagValTextParser) -> MenuSpannerCommand:
+    return MenuSpannerCommand(metric_size=parser.get_value_as_int("ZA"), make=parser.get_value("ZB"))
+
+
+# noinspection PyProtectedMember
+def write_spanner_command(buffer: io.StringIO, command: MenuSpannerCommand) -> None:
+    TagValMenuCommandProcessors._append_field(buffer, "ZA", command.metric_size)
+    TagValMenuCommandProcessors._append_field(buffer, "ZB", command.make)
+
+
+protocol.add_tag_val_in_processor(field=MenuSpannerCommand.SPANNER_MSG_TYPE, processor=process_spanner_command)
+protocol.add_tag_val_out_processor(
+    field=MenuSpannerCommand.SPANNER_MSG_TYPE, processor=write_spanner_command, clazz=MenuSpannerCommand
+)
+
+
+# Custom raw bin data serialization and deserialization.
+@dataclass(frozen=True)
+class BinaryDataCommand(MenuCommand):
+    BIN_DATA_COMMAND: ClassVar[MessageField] = MessageField("S", "B")
+
+    bin_data: bytes
+
+    @property
+    def command_type(self) -> MessageField:
+        return BinaryDataCommand.BIN_DATA_COMMAND
+
+
+def process_raw_bin_data(buffer: io.BytesIO, length: int) -> BinaryDataCommand:
+    data: bytes = buffer.read(length)
+    return BinaryDataCommand(bin_data=data)
+
+
+def write_raw_bin_data(buffer: io.BytesIO, command: BinaryDataCommand) -> None:
+    bin_data = command.bin_data
+    length = len(bin_data)
+
+    # Write the length of the binary data as an integer to the buffer
+    buffer.write(struct.pack(">I", length))
+
+    # Write the binary data itself
+    buffer.write(bin_data)
+
+
+protocol.add_raw_in_processor(field=BinaryDataCommand.BIN_DATA_COMMAND, processor=process_raw_bin_data)
+protocol.add_raw_out_processor(
+    field=BinaryDataCommand.BIN_DATA_COMMAND, processor=write_raw_bin_data, clazz=BinaryDataCommand
+)
 
 
 def test_receive_join_command():
@@ -292,6 +367,7 @@ def test_receive_large_number_negative_default():
     assert 10 == large_num_cmd.sub_menu_id
     assert 4 == large_num_cmd.menu_item.decimal_places
     assert 12 == large_num_cmd.menu_item.digits_allowed
+    assert 64 == large_num_cmd.menu_item.eeprom_address
 
     epsilon = 1e-5
     assert abs(11.1234 - large_num_cmd.current_value) < epsilon
@@ -583,6 +659,442 @@ def verify_change_fields(command: MenuChangeCommand, change_type: MenuChangeComm
     assert "ca039424" == str(change_command.correlation_id)
 
 
+def test_write_heartbeat():
+    out_buffer = io.BytesIO()
+    protocol.to_channel(
+        buffer=out_buffer,
+        command=CommandFactory.new_heartbeat_command(frequency=10000, mode=MenuHeartbeatCommand.HeartbeatMode.NORMAL),
+    )
+    compare_buffer_against_expected(out_buffer, MenuCommandType.HEARTBEAT.value, "HI=10000|HR=0|\u0002")
+
+
+def test_write_join():
+    out_buffer = io.BytesIO()
+    uuid_val: uuid.UUID = uuid.UUID("07cd8bc6-734d-43da-84e7-6084990becfc")
+    protocol.to_channel(
+        buffer=out_buffer,
+        command=MenuJoinCommand(
+            app_uuid=uuid_val,
+            my_name="dave",
+            platform=ApiPlatform.ARDUINO,
+            api_version=101,
+            serial_number=999999999,
+        ),
+    )
+    compare_buffer_against_expected(
+        out_buffer,
+        MenuCommandType.JOIN.value,
+        "NM=dave|UU=07cd8bc6-734d-43da-84e7-6084990becfc|VE=101|PF=0|US=999999999|\u0002",
+    )
+
+
+def test_write_large_num_boot_item():
+    out_buffer = io.BytesIO()
+    protocol.to_channel(
+        buffer=out_buffer,
+        command=MenuLargeNumBootCommand(
+            sub_menu_id=10,
+            menu_item=DomainFixtures.a_large_number(name="largeNum", item_id=111, dp=4, negative=True),
+            current_value=1,
+        ),
+    )
+    compare_buffer_against_expected(
+        out_buffer,
+        MenuCommandType.LARGE_NUM_BOOT_ITEM.value,
+        "PI=10|ID=111|IE=64|NM=largeNum|RO=0|VI=1|FD=4|NA=1|ML=12|VC=1.0000|\u0002",
+    )
+
+
+def test_write_bootstrap():
+    out_buffer = io.BytesIO()
+    protocol.to_channel(
+        buffer=out_buffer,
+        command=MenuBootstrapCommand(boot_type=MenuBootstrapCommand.BootType.START),
+    )
+    compare_buffer_against_expected(
+        out_buffer,
+        MenuCommandType.BOOTSTRAP.value,
+        "BT=START|\u0002",
+    )
+
+
+def test_write_analog_item():
+    out_buffer = io.BytesIO()
+    analog_item = DomainFixtures.an_analog_item(name="Test", item_id=123)
+    protocol.to_channel(
+        buffer=out_buffer,
+        command=MenuAnalogBootCommand(sub_menu_id=321, menu_item=analog_item, current_value=25),
+    )
+    compare_buffer_against_expected(
+        out_buffer,
+        MenuCommandType.ANALOG_BOOT_ITEM.value,
+        "PI=321|ID=123|IE=104|NM=Test|RO=0|VI=1|AO=102|AD=2|AM=255|AS=1|AU=dB|VC=25|\u0002",
+    )
+    out_buffer = io.BytesIO()
+    analog_item_with_step = replace(analog_item, step=2)
+    protocol.to_channel(
+        buffer=out_buffer,
+        command=MenuAnalogBootCommand(sub_menu_id=321, menu_item=analog_item_with_step, current_value=-22222),
+    )
+    compare_buffer_against_expected(
+        out_buffer,
+        MenuCommandType.ANALOG_BOOT_ITEM.value,
+        "PI=321|ID=123|IE=104|NM=Test|RO=0|VI=1|AO=102|AD=2|AM=255|AS=2|AU=dB|VC=-22222|\u0002",
+    )
+
+
+def test_write_enum_item():
+    out_buffer = io.BytesIO()
+    protocol.to_channel(
+        buffer=out_buffer,
+        command=MenuEnumBootCommand(
+            sub_menu_id=22, menu_item=DomainFixtures.an_enum_item(name="Test", item_id=2), current_value=1
+        ),
+    )
+    compare_buffer_against_expected(
+        out_buffer,
+        MenuCommandType.ENUM_BOOT_ITEM.value,
+        "PI=22|ID=2|IE=101|NM=Test|RO=0|VI=1|VC=1|NC=2|CA=Item1|CB=Item2|\u0002",
+    )
+
+
+def test_write_submenu():
+    out_buffer = io.BytesIO()
+    protocol.to_channel(
+        buffer=out_buffer,
+        command=MenuSubBootCommand(
+            sub_menu_id=22, menu_item=DomainFixtures.a_sub_menu(name="Sub", item_id=1), current_value=False
+        ),
+    )
+    compare_buffer_against_expected(
+        out_buffer,
+        MenuCommandType.SUBMENU_BOOT_ITEM.value,
+        "PI=22|ID=1|IE=102|NM=Sub|RO=0|VI=1|VC=0|\u0002",
+    )
+
+
+def test_write_boolean_item_true_false():
+    out_buffer = io.BytesIO()
+    protocol.to_channel(
+        buffer=out_buffer,
+        command=MenuBooleanBootCommand(
+            sub_menu_id=22,
+            menu_item=DomainFixtures.a_boolean_menu(
+                name="Bool", item_id=1, naming=BooleanMenuItem.BooleanNaming.TRUE_FALSE
+            ),
+            current_value=False,
+        ),
+    )
+    compare_buffer_against_expected(
+        out_buffer,
+        MenuCommandType.BOOLEAN_BOOT_ITEM.value,
+        "PI=22|ID=1|IE=102|NM=Bool|RO=0|VI=1|BN=0|VC=0|\u0002",
+    )
+
+
+def test_write_boolean_item_on_off():
+    out_buffer = io.BytesIO()
+    protocol.to_channel(
+        buffer=out_buffer,
+        command=MenuBooleanBootCommand(
+            sub_menu_id=22,
+            menu_item=DomainFixtures.a_boolean_menu(
+                name="Bool", item_id=1, naming=BooleanMenuItem.BooleanNaming.ON_OFF
+            ),
+            current_value=True,
+        ),
+    )
+    compare_buffer_against_expected(
+        out_buffer,
+        MenuCommandType.BOOLEAN_BOOT_ITEM.value,
+        "PI=22|ID=1|IE=102|NM=Bool|RO=0|VI=1|BN=1|VC=1|\u0002",
+    )
+
+
+def test_write_boolean_item_yes_no():
+    out_buffer = io.BytesIO()
+    protocol.to_channel(
+        buffer=out_buffer,
+        command=MenuBooleanBootCommand(
+            sub_menu_id=22,
+            menu_item=DomainFixtures.a_boolean_menu(
+                name="Bool", item_id=1, naming=BooleanMenuItem.BooleanNaming.YES_NO
+            ),
+            current_value=True,
+        ),
+    )
+    compare_buffer_against_expected(
+        out_buffer,
+        MenuCommandType.BOOLEAN_BOOT_ITEM.value,
+        "PI=22|ID=1|IE=102|NM=Bool|RO=0|VI=1|BN=2|VC=1|\u0002",
+    )
+
+
+def test_write_boolean_item_checkbox():
+    out_buffer = io.BytesIO()
+    protocol.to_channel(
+        buffer=out_buffer,
+        command=MenuBooleanBootCommand(
+            sub_menu_id=22,
+            menu_item=DomainFixtures.a_boolean_menu(
+                name="Bool", item_id=1, naming=BooleanMenuItem.BooleanNaming.CHECKBOX
+            ),
+            current_value=True,
+        ),
+    )
+    compare_buffer_against_expected(
+        out_buffer,
+        MenuCommandType.BOOLEAN_BOOT_ITEM.value,
+        "PI=22|ID=1|IE=102|NM=Bool|RO=0|VI=1|BN=3|VC=1|\u0002",
+    )
+
+
+def test_write_float_item():
+    out_buffer = io.BytesIO()
+    item: FloatMenuItem = replace(
+        DomainFixtures.a_float_menu(name="FloatMenu", item_id=1),
+        visible=False,
+    )
+    protocol.to_channel(
+        buffer=out_buffer,
+        command=MenuFloatBootCommand(
+            sub_menu_id=22,
+            menu_item=item,
+            current_value=12.0,
+        ),
+    )
+    compare_buffer_against_expected(
+        out_buffer,
+        MenuCommandType.FLOAT_BOOT_ITEM.value,
+        "PI=22|ID=1|IE=105|NM=FloatMenu|RO=0|VI=0|FD=3|VC=12.0|\u0002",
+    )
+
+
+def test_write_runtime_list_item():
+    out_buffer = io.BytesIO()
+    protocol.to_channel(
+        buffer=out_buffer,
+        command=MenuRuntimeListBootCommand(
+            sub_menu_id=22,
+            menu_item=DomainFixtures.a_runtime_list_menu(name="List", item_id=1, rows=2),
+            current_value=("ABC", "DEF"),
+        ),
+    )
+    compare_buffer_against_expected(
+        out_buffer,
+        MenuCommandType.RUNTIME_LIST_BOOT.value,
+        "PI=22|ID=1|IE=88|NM=List|RO=0|VI=1|NC=2|CA=ABC|CB=DEF|\u0002",
+    )
+
+
+def test_write_action_item():
+    out_buffer = io.BytesIO()
+    protocol.to_channel(
+        buffer=out_buffer,
+        command=MenuActionBootCommand(
+            sub_menu_id=22,
+            menu_item=DomainFixtures.an_action_menu(name="Action", item_id=1),
+            current_value=False,
+        ),
+    )
+    compare_buffer_against_expected(
+        out_buffer,
+        MenuCommandType.ACTION_BOOT_ITEM.value,
+        "PI=22|ID=1|IE=20|NM=Action|RO=0|VI=1|VC=|\u0002",
+    )
+
+
+def test_write_text_item():
+    out_buffer = io.BytesIO()
+    protocol.to_channel(
+        buffer=out_buffer,
+        command=MenuTextBootCommand(
+            sub_menu_id=22,
+            menu_item=DomainFixtures.a_text_menu(name="TextItem", item_id=1),
+            current_value="ABC",
+        ),
+    )
+    compare_buffer_against_expected(
+        out_buffer,
+        MenuCommandType.TEXT_BOOT_ITEM.value,
+        "PI=22|ID=1|IE=101|NM=TextItem|RO=0|VI=1|ML=10|EM=0|VC=ABC|\u0002",
+    )
+
+
+def test_write_an_absolute_change():
+    out_buffer = io.BytesIO()
+    protocol.to_channel(
+        buffer=out_buffer,
+        command=CommandFactory.new_absolute_menu_change_command(
+            correlation_id=CorrelationId.from_string("00134654"), item=2, value=1
+        ),
+    )
+    compare_buffer_against_expected(
+        out_buffer,
+        MenuCommandType.CHANGE_INT_FIELD.value,
+        "IC=00134654|ID=2|TC=1|VC=1|\u0002",
+    )
+
+
+def test_write_a_delta_change():
+    out_buffer = io.BytesIO()
+    protocol.to_channel(
+        buffer=out_buffer,
+        command=CommandFactory.new_delta_menu_change_command(
+            correlation_id=CorrelationId.from_string("C04239"), item=2, value=1
+        ),
+    )
+    compare_buffer_against_expected(
+        out_buffer,
+        MenuCommandType.CHANGE_INT_FIELD.value,
+        "IC=00c04239|ID=2|TC=0|VC=1|\u0002",
+    )
+
+
+def test_write_a_list_change():
+    out_buffer = io.BytesIO()
+    protocol.to_channel(
+        buffer=out_buffer,
+        command=CommandFactory.new_absolute_list_menu_change_command(
+            correlation_id=CorrelationId.from_string("C04239"), item=2, values=("123", "456")
+        ),
+    )
+    compare_buffer_against_expected(
+        out_buffer,
+        MenuCommandType.CHANGE_INT_FIELD.value,
+        "IC=00c04239|ID=2|TC=2|NC=2|CA=123|CB=456|\u0002",
+    )
+
+
+def test_write_a_list_status_change():
+    out_buffer = io.BytesIO()
+    protocol.to_channel(
+        buffer=out_buffer,
+        command=CommandFactory.new_list_response_menu_change_command(
+            correlation_id=CorrelationId.from_string("C04239"), item=2, value=ListResponse.from_string("12343:1")
+        ),
+    )
+    compare_buffer_against_expected(
+        out_buffer,
+        MenuCommandType.CHANGE_INT_FIELD.value,
+        "IC=00c04239|ID=2|TC=3|VC=12343:1|\u0002",
+    )
+
+
+def test_write_ack():
+    out_buffer = io.BytesIO()
+    protocol.to_channel(
+        buffer=out_buffer,
+        command=CommandFactory.new_acknowledgement_command(
+            correlation_id=CorrelationId.from_string("1234567a"), status=AckStatus.ID_NOT_FOUND
+        ),
+    )
+    compare_buffer_against_expected(
+        out_buffer,
+        MenuCommandType.ACKNOWLEDGEMENT.value,
+        "IC=1234567a|ST=1|\u0002",
+    )
+
+
+def test_write_pairing():
+    out_buffer = io.BytesIO()
+    protocol.to_channel(
+        buffer=out_buffer,
+        command=CommandFactory.new_pairing_command(
+            name="pairingtest", uuid=uuid.UUID("575d327e-fe76-4e68-b0b8-45eea154a126")
+        ),
+    )
+    compare_buffer_against_expected(
+        out_buffer,
+        MenuCommandType.PAIRING_REQUEST.value,
+        "NM=pairingtest|UU=575d327e-fe76-4e68-b0b8-45eea154a126|\u0002",
+    )
+
+
+def test_write_dialog_update():
+    out_buffer = io.BytesIO()
+    # noinspection PyUnresolvedReferences
+    protocol.to_channel(
+        buffer=out_buffer,
+        command=CommandFactory.new_dialog_command(
+            mode=DialogMode.SHOW,
+            header="Hello",
+            message="Buffer",
+            button1=MenuButtonType.NONE,
+            button2=MenuButtonType.CLOSE,
+            correlation_id=CorrelationId.EMPTY_CORRELATION,
+        ),
+    )
+    compare_buffer_against_expected(
+        out_buffer,
+        MenuCommandType.DIALOG_UPDATE.value,
+        "MO=S|HF=Hello|BU=Buffer|B1=4|B2=3|IC=00000000|\u0002",
+    )
+
+
+def test_write_runtime_rgb_color_item():
+    out_buffer = io.BytesIO()
+    protocol.to_channel(
+        buffer=out_buffer,
+        command=CommandFactory.new_menu_rgb32_boot_command(
+            parent_id=0,
+            item=Rgb32MenuItem(name="rgb", id=1, include_alpha_channel=True),
+            current_value=PortableColor.from_html("#22334455"),
+        ),
+    )
+    compare_buffer_against_expected(
+        out_buffer,
+        MenuCommandType.BOOT_RGB_COLOR.value,
+        "PI=0|ID=1|IE=-1|NM=rgb|RO=0|VI=1|RA=1|VC=#22334455|\u0002",
+    )
+
+
+def test_write_scroll_choice():
+    out_buffer = io.BytesIO()
+    protocol.to_channel(
+        buffer=out_buffer,
+        command=CommandFactory.new_menu_scroll_choice_boot_command(
+            parent_id=0,
+            item=ScrollChoiceMenuItem(name="scroll", id=1, item_width=10, num_entries=20),
+            current_value=CurrentScrollPosition(position=1, value="hello"),
+        ),
+    )
+    compare_buffer_against_expected(
+        out_buffer,
+        MenuCommandType.BOOT_SCROLL_CHOICE.value,
+        "PI=0|ID=1|IE=-1|NM=scroll|RO=0|VI=1|WI=10|NC=20|VC=1-hello|\u0002",
+    )
+
+
+def test_send_and_receive_custom_tag_val():
+    out_buffer = io.BytesIO()
+    spanner_command: MenuSpannerCommand = MenuSpannerCommand(metric_size=15, make="Super Duper")
+    protocol.to_channel(
+        buffer=out_buffer,
+        command=spanner_command,
+    )
+    out_buffer.seek(0)
+    assert MenuCommandProtocol.PROTO_START_OF_MSG == out_buffer.read(1)
+    decoded_command: MenuSpannerCommand = protocol.from_channel(out_buffer)
+    assert MenuSpannerCommand.SPANNER_MSG_TYPE == decoded_command.command_type
+    assert 15 == decoded_command.metric_size
+    assert "Super Duper" == decoded_command.make
+
+
+def test_send_and_receive_custom_bin_data():
+    out_buffer = io.BytesIO()
+    bin_data_cmd: BinaryDataCommand = BinaryDataCommand(bytes([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]))
+    protocol.to_channel(
+        buffer=out_buffer,
+        command=bin_data_cmd,
+    )
+    out_buffer.seek(0)
+    assert MenuCommandProtocol.PROTO_START_OF_MSG == out_buffer.read(1)
+    decoded_command: BinaryDataCommand = protocol.from_channel(out_buffer)
+    assert BinaryDataCommand.BIN_DATA_COMMAND == decoded_command.command_type
+    assert decoded_command.bin_data == bytes([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+
+
 def to_buffer(message_type: MessageField, s: str) -> io.BytesIO:
     buffer = io.BytesIO()
     buffer.write(CommandProtocol.TAG_VAL_PROTOCOL.protocol_num)
@@ -591,3 +1103,11 @@ def to_buffer(message_type: MessageField, s: str) -> io.BytesIO:
     buffer.write(s.encode("utf-8"))
     buffer.seek(0)  # Resetting the buffer's position to the beginning
     return buffer
+
+
+def compare_buffer_against_expected(out_buffer: io.BytesIO, expected_msg: MessageField, expected_data: str):
+    out_buffer.seek(0)
+    expected_data: str = f"\u0001\u0001{expected_msg.high}{expected_msg.low}{expected_data}"
+
+    # Check the actual data is right.
+    assert expected_data == out_buffer.getvalue().decode("utf-8")

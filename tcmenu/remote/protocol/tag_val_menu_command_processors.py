@@ -1,5 +1,6 @@
 import io
 import uuid
+from typing import Any
 
 from tcmenu.domain.edit_item_type import EditItemType
 from tcmenu.domain.menu_items import (
@@ -34,11 +35,11 @@ from tcmenu.remote.commands.menu_boot_commands import (
     MenuRuntimeListBootCommand,
     MenuRgb32BootCommand,
     MenuScrollChoiceBootCommand,
+    BootItemMenuCommand,
 )
 from tcmenu.remote.commands.menu_bootstrap_command import MenuBootstrapCommand
 from tcmenu.remote.commands.menu_button_type import MenuButtonType
 from tcmenu.remote.commands.menu_change_command import MenuChangeCommand
-from tcmenu.remote.commands.menu_command import MenuCommand
 from tcmenu.remote.commands.menu_command_type import MenuCommandType
 from tcmenu.remote.commands.menu_dialog_command import MenuDialogCommand
 from tcmenu.remote.commands.menu_heartbeat_command import MenuHeartbeatCommand
@@ -51,6 +52,7 @@ from tcmenu.remote.protocol.tag_val_text_parser import TagValTextParser
 
 
 class TagValMenuCommandProcessors:
+    # noinspection PyUnresolvedReferences
     @staticmethod
     def add_handlers_to_protocol(proto: "ConfigurableProtocolConverter"):
         # Input processors
@@ -194,7 +196,7 @@ class TagValMenuCommandProcessors:
         )
 
     @staticmethod
-    def _process_join(parser: TagValTextParser) -> MenuCommand:
+    def _process_join(parser: TagValTextParser) -> MenuJoinCommand:
         uuid_str: str = parser.get_value(TagValMenuFields.KEY_UUID_FIELD.value, "")
         uuid_val: uuid.UUID = uuid.UUID(uuid_str) if len(uuid_str) > 0 else uuid.uuid4()
 
@@ -209,19 +211,19 @@ class TagValMenuCommandProcessors:
         )
 
     @staticmethod
-    def _process_heartbeat(parser: TagValTextParser) -> MenuCommand:
+    def _process_heartbeat(parser: TagValTextParser) -> MenuHeartbeatCommand:
         return CommandFactory.new_heartbeat_command(
             frequency=parser.get_value_as_int(TagValMenuFields.HB_FREQUENCY_FIELD.value, 10000),
             mode=MenuHeartbeatCommand.from_id(parser.get_value_as_int(TagValMenuFields.HB_MODE_FIELD.value, 0)),
         )
 
     @staticmethod
-    def _process_bootstrap(parser: TagValTextParser) -> MenuCommand:
+    def _process_bootstrap(parser: TagValTextParser) -> MenuBootstrapCommand:
         boot_type = MenuBootstrapCommand.BootType[parser.get_value(TagValMenuFields.KEY_BOOT_TYPE_FIELD.value)]
         return MenuBootstrapCommand(boot_type=boot_type)
 
     @staticmethod
-    def _process_analog_boot_item(parser: TagValTextParser) -> MenuCommand:
+    def _process_analog_boot_item(parser: TagValTextParser) -> MenuAnalogBootCommand:
         item: AnalogMenuItem = AnalogMenuItem(
             id=parser.get_value_as_int(TagValMenuFields.KEY_ID_FIELD.value),
             divisor=parser.get_value_as_int(TagValMenuFields.KEY_ANALOG_DIVISOR_FIELD.value),
@@ -241,7 +243,7 @@ class TagValMenuCommandProcessors:
         return CommandFactory.new_analog_boot_command(parent_id=parent_id, item=item, current_value=current_val)
 
     @staticmethod
-    def _process_sub_menu_boot_item(parser: TagValTextParser) -> MenuCommand:
+    def _process_sub_menu_boot_item(parser: TagValTextParser) -> MenuSubBootCommand:
         item: SubMenuItem = SubMenuItem(
             id=parser.get_value_as_int(TagValMenuFields.KEY_ID_FIELD.value),
             eeprom_address=parser.get_value_as_int(TagValMenuFields.KEY_EEPROM_FIELD.value, 0),
@@ -253,7 +255,7 @@ class TagValMenuCommandProcessors:
         return CommandFactory.new_sub_menu_boot_command(parent_id=parent_id, item=item)
 
     @staticmethod
-    def _process_enum_boot_item(parser: TagValTextParser) -> MenuCommand:
+    def _process_enum_boot_item(parser: TagValTextParser) -> MenuEnumBootCommand:
         choices: tuple[str, ...] = TagValMenuCommandProcessors._choices_from_msg(parser)
         item: EnumMenuItem = EnumMenuItem(
             id=parser.get_value_as_int(TagValMenuFields.KEY_ID_FIELD.value),
@@ -270,7 +272,7 @@ class TagValMenuCommandProcessors:
         return CommandFactory.new_menu_enum_boot_command(parent_id=parent_id, item=item, current_value=current_val)
 
     @staticmethod
-    def _process_boolean_boot_item(parser: TagValTextParser) -> MenuCommand:
+    def _process_boolean_boot_item(parser: TagValTextParser) -> MenuBooleanBootCommand:
         item: BooleanMenuItem = BooleanMenuItem(
             id=parser.get_value_as_int(TagValMenuFields.KEY_ID_FIELD.value),
             eeprom_address=parser.get_value_as_int(TagValMenuFields.KEY_EEPROM_FIELD.value, 0),
@@ -290,7 +292,7 @@ class TagValMenuCommandProcessors:
         )
 
     @staticmethod
-    def _process_large_num_boot_item(parser: TagValTextParser) -> MenuCommand:
+    def _process_large_num_boot_item(parser: TagValTextParser) -> MenuLargeNumBootCommand:
         item: EditableLargeNumberMenuItem = EditableLargeNumberMenuItem(
             id=parser.get_value_as_int(TagValMenuFields.KEY_ID_FIELD.value),
             eeprom_address=parser.get_value_as_int(TagValMenuFields.KEY_EEPROM_FIELD.value, 0),
@@ -310,14 +312,15 @@ class TagValMenuCommandProcessors:
         )
 
     @staticmethod
-    def _process_item_change(parser: TagValTextParser) -> MenuCommand:
+    def _process_item_change(parser: TagValTextParser) -> MenuChangeCommand:
         change_type: MenuChangeCommand.ChangeType = MenuChangeCommand.ChangeType.from_id(
             parser.get_value_as_int(TagValMenuFields.KEY_CHANGE_TYPE.value)
         )
 
         correlation_str: str = parser.get_value(TagValMenuFields.KEY_CORRELATION_FIELD.value, "")
+        # noinspection PyUnresolvedReferences
         correlation: CorrelationId = (
-            CorrelationId.EMPTY_CORRELATION if len(correlation_str) == 0 else CorrelationId.from_string(correlation_str)
+            CorrelationId.from_string(correlation_str) if len(correlation_str) != 0 else CorrelationId.EMPTY_CORRELATION
         )
 
         if change_type == MenuChangeCommand.ChangeType.DELTA:
@@ -333,6 +336,7 @@ class TagValMenuCommandProcessors:
                 value=parser.get_value_as_int(TagValMenuFields.KEY_CURRENT_VAL.value),
             )
         elif change_type == MenuChangeCommand.ChangeType.LIST_STATE_CHANGE:
+            # noinspection PyUnresolvedReferences
             list_response: ListResponse = (
                 ListResponse.from_string(parser.get_value(TagValMenuFields.KEY_CURRENT_VAL.value)) or ListResponse.EMPTY
             )
@@ -352,7 +356,7 @@ class TagValMenuCommandProcessors:
             )
 
     @staticmethod
-    def _process_text_boot_item(parser: TagValTextParser) -> MenuCommand:
+    def _process_text_boot_item(parser: TagValTextParser) -> MenuTextBootCommand:
         item: EditableTextMenuItem = EditableTextMenuItem(
             id=parser.get_value_as_int(TagValMenuFields.KEY_ID_FIELD.value),
             eeprom_address=parser.get_value_as_int(TagValMenuFields.KEY_EEPROM_FIELD.value, 0),
@@ -369,7 +373,7 @@ class TagValMenuCommandProcessors:
         return CommandFactory.new_menu_text_boot_command(parent_id=parent_id, item=item, current_value=current_val)
 
     @staticmethod
-    def _process_float_boot_item(parser: TagValTextParser) -> MenuCommand:
+    def _process_float_boot_item(parser: TagValTextParser) -> MenuFloatBootCommand:
         item: FloatMenuItem = FloatMenuItem(
             id=parser.get_value_as_int(TagValMenuFields.KEY_ID_FIELD.value),
             eeprom_address=parser.get_value_as_int(TagValMenuFields.KEY_EEPROM_FIELD.value, 0),
@@ -387,7 +391,7 @@ class TagValMenuCommandProcessors:
         )
 
     @staticmethod
-    def _process_action_boot_item(parser: TagValTextParser) -> MenuCommand:
+    def _process_action_boot_item(parser: TagValTextParser) -> MenuActionBootCommand:
         item: ActionMenuItem = ActionMenuItem(
             id=parser.get_value_as_int(TagValMenuFields.KEY_ID_FIELD.value),
             eeprom_address=parser.get_value_as_int(TagValMenuFields.KEY_EEPROM_FIELD.value, 0),
@@ -399,7 +403,7 @@ class TagValMenuCommandProcessors:
         return MenuActionBootCommand(sub_menu_id=parent_id, menu_item=item, current_value=False)
 
     @staticmethod
-    def _process_runtime_list_boot_item(parser: TagValTextParser) -> MenuCommand:
+    def _process_runtime_list_boot_item(parser: TagValTextParser) -> MenuRuntimeListBootCommand:
         item: RuntimeListMenuItem = RuntimeListMenuItem(
             id=parser.get_value_as_int(TagValMenuFields.KEY_ID_FIELD.value),
             eeprom_address=parser.get_value_as_int(TagValMenuFields.KEY_EEPROM_FIELD.value, 0),
@@ -433,7 +437,7 @@ class TagValMenuCommandProcessors:
         return tuple(choices)
 
     @staticmethod
-    def _process_runtime_rgb_color_item(parser: TagValTextParser) -> MenuCommand:
+    def _process_runtime_rgb_color_item(parser: TagValTextParser) -> MenuRgb32BootCommand:
         item: Rgb32MenuItem = Rgb32MenuItem(
             id=parser.get_value_as_int(TagValMenuFields.KEY_ID_FIELD.value),
             eeprom_address=parser.get_value_as_int(TagValMenuFields.KEY_EEPROM_FIELD.value, 0),
@@ -451,7 +455,7 @@ class TagValMenuCommandProcessors:
         )
 
     @staticmethod
-    def _process_runtime_scroll_choice(parser: TagValTextParser) -> MenuCommand:
+    def _process_runtime_scroll_choice(parser: TagValTextParser) -> MenuScrollChoiceBootCommand:
         item: ScrollChoiceMenuItem = ScrollChoiceMenuItem(
             id=parser.get_value_as_int(TagValMenuFields.KEY_ID_FIELD.value),
             eeprom_address=parser.get_value_as_int(TagValMenuFields.KEY_EEPROM_FIELD.value, 0),
@@ -470,7 +474,7 @@ class TagValMenuCommandProcessors:
         )
 
     @staticmethod
-    def _process_acknowledgement(parser: TagValTextParser) -> MenuCommand:
+    def _process_acknowledgement(parser: TagValTextParser) -> MenuAcknowledgementCommand:
         correlation_id: CorrelationId = CorrelationId.from_string(
             parser.get_value(TagValMenuFields.KEY_CORRELATION_FIELD.value, "0")
         )
@@ -481,17 +485,18 @@ class TagValMenuCommandProcessors:
         )
 
     @staticmethod
-    def _process_pairing_request(parser: TagValTextParser) -> MenuCommand:
+    def _process_pairing_request(parser: TagValTextParser) -> MenuPairingCommand:
         return CommandFactory.new_pairing_command(
             name=parser.get_value(TagValMenuFields.KEY_NAME_FIELD.value),
             uuid=uuid.UUID(parser.get_value(TagValMenuFields.KEY_UUID_FIELD.value)),
         )
 
     @staticmethod
-    def _process_dialog_update(parser: TagValTextParser) -> MenuCommand:
+    def _process_dialog_update(parser: TagValTextParser) -> MenuDialogCommand:
         cor: str = parser.get_value(TagValMenuFields.KEY_CORRELATION_FIELD.value, "")
+        # noinspection PyUnresolvedReferences
         correlation_id: CorrelationId = (
-            CorrelationId.EMPTY_CORRELATION if len(cor) == 0 else CorrelationId.from_string(cor)
+            CorrelationId.from_string(cor) if len(cor) != 0 else CorrelationId.EMPTY_CORRELATION
         )
 
         return CommandFactory.new_dialog_command(
@@ -504,73 +509,215 @@ class TagValMenuCommandProcessors:
         )
 
     @staticmethod
-    def _write_join(buffer: io.StringIO, command: MenuCommand) -> None:
-        pass
+    def _write_join(buffer: io.StringIO, command: MenuJoinCommand) -> None:
+        TagValMenuCommandProcessors._append_field(buffer, TagValMenuFields.KEY_NAME_FIELD.value, command.my_name)
+        TagValMenuCommandProcessors._append_field(buffer, TagValMenuFields.KEY_UUID_FIELD.value, command.app_uuid)
+        TagValMenuCommandProcessors._append_field(buffer, TagValMenuFields.KEY_VER_FIELD.value, command.api_version)
+        TagValMenuCommandProcessors._append_field(buffer, TagValMenuFields.KEY_PLATFORM_ID.value, command.platform.key)
+        TagValMenuCommandProcessors._append_field(buffer, TagValMenuFields.KEY_SERIAL_NO.value, command.serial_number)
 
     @staticmethod
-    def _write_heartbeat(buffer: io.StringIO, command: MenuCommand) -> None:
-        pass
+    def _write_heartbeat(buffer: io.StringIO, command: MenuHeartbeatCommand) -> None:
+        TagValMenuCommandProcessors._append_field(
+            buffer, TagValMenuFields.HB_FREQUENCY_FIELD.value, command.heartbeat_interval
+        )
+        TagValMenuCommandProcessors._append_field(buffer, TagValMenuFields.HB_MODE_FIELD.value, command.mode.value)
 
     @staticmethod
-    def _write_bootstrap(buffer: io.StringIO, command: MenuCommand) -> None:
-        pass
+    def _write_bootstrap(buffer: io.StringIO, command: MenuBootstrapCommand) -> None:
+        TagValMenuCommandProcessors._append_field(
+            buffer, TagValMenuFields.KEY_BOOT_TYPE_FIELD.value, command.boot_type.name
+        )
 
     @staticmethod
-    def _write_analog_boot_item(buffer: io.StringIO, command: MenuCommand) -> None:
-        pass
+    def _write_analog_boot_item(buffer: io.StringIO, command: MenuAnalogBootCommand) -> None:
+        TagValMenuCommandProcessors._write_common_boot_fields(buffer, command)
+        TagValMenuCommandProcessors._append_field(
+            buffer, TagValMenuFields.KEY_ANALOG_OFFSET_FIELD.value, command.menu_item.offset
+        )
+        TagValMenuCommandProcessors._append_field(
+            buffer, TagValMenuFields.KEY_ANALOG_DIVISOR_FIELD.value, command.menu_item.divisor
+        )
+        TagValMenuCommandProcessors._append_field(
+            buffer, TagValMenuFields.KEY_ANALOG_MAX_FIELD.value, command.menu_item.max_value
+        )
+        TagValMenuCommandProcessors._append_field(
+            buffer, TagValMenuFields.KEY_ANALOG_STEP_FIELD.value, command.menu_item.step
+        )
+        TagValMenuCommandProcessors._append_field(
+            buffer, TagValMenuFields.KEY_ANALOG_UNIT_FIELD.value, command.menu_item.unit_name
+        )
+        TagValMenuCommandProcessors._append_field(buffer, TagValMenuFields.KEY_CURRENT_VAL.value, command.current_value)
 
     @staticmethod
-    def _write_sub_menu_boot_item(buffer: io.StringIO, command: MenuCommand) -> None:
-        pass
+    def _write_sub_menu_boot_item(buffer: io.StringIO, command: MenuSubBootCommand) -> None:
+        TagValMenuCommandProcessors._write_common_boot_fields(buffer, command)
+        TagValMenuCommandProcessors._append_field(buffer, TagValMenuFields.KEY_CURRENT_VAL.value, 0)
 
     @staticmethod
-    def _write_enum_boot_item(buffer: io.StringIO, command: MenuCommand) -> None:
-        pass
+    def _write_enum_boot_item(buffer: io.StringIO, command: MenuEnumBootCommand) -> None:
+        TagValMenuCommandProcessors._write_common_boot_fields(buffer, command)
+        TagValMenuCommandProcessors._append_field(buffer, TagValMenuFields.KEY_CURRENT_VAL.value, command.current_value)
+        entries: tuple[str, ...] = command.menu_item.enum_entries
+        TagValMenuCommandProcessors._append_choices(buffer=buffer, entries=entries)
 
     @staticmethod
-    def _write_boolean_boot_item(buffer: io.StringIO, command: MenuCommand) -> None:
-        pass
+    def _write_boolean_boot_item(buffer: io.StringIO, command: MenuBooleanBootCommand) -> None:
+        TagValMenuCommandProcessors._write_common_boot_fields(buffer, command)
+        TagValMenuCommandProcessors._append_field(
+            buffer, TagValMenuFields.KEY_BOOLEAN_NAMING.value, command.menu_item.naming.value
+        )
+        TagValMenuCommandProcessors._append_field(
+            buffer, TagValMenuFields.KEY_CURRENT_VAL.value, 1 if command.current_value is True else 0
+        )
 
     @staticmethod
-    def _write_large_num_boot_item(buffer: io.StringIO, command: MenuCommand) -> None:
-        pass
+    def _write_large_num_boot_item(buffer: io.StringIO, command: MenuLargeNumBootCommand) -> None:
+        TagValMenuCommandProcessors._write_common_boot_fields(buffer, command)
+        decimal_places = command.menu_item.decimal_places
+        TagValMenuCommandProcessors._append_field(
+            buffer, TagValMenuFields.KEY_FLOAT_DECIMAL_PLACES.value, decimal_places
+        )
+        TagValMenuCommandProcessors._append_field(
+            buffer, TagValMenuFields.KEY_NEGATIVE_ALLOWED.value, 1 if command.menu_item.negative_allowed else 0
+        )
+        TagValMenuCommandProcessors._append_field(
+            buffer, TagValMenuFields.KEY_MAX_LENGTH.value, command.menu_item.digits_allowed
+        )
+
+        # Formatting the current value
+        current_val = "{:,.{prec}f}".format(command.current_value, prec=decimal_places).replace(",", "")
+        TagValMenuCommandProcessors._append_field(buffer, TagValMenuFields.KEY_CURRENT_VAL.value, current_val)
 
     @staticmethod
-    def _write_item_change(buffer: io.StringIO, command: MenuCommand) -> None:
-        pass
+    def _write_item_change(buffer: io.StringIO, command: MenuChangeCommand) -> None:
+        TagValMenuCommandProcessors._append_field(
+            buffer, TagValMenuFields.KEY_CORRELATION_FIELD.value, command.correlation_id
+        )
+        TagValMenuCommandProcessors._append_field(buffer, TagValMenuFields.KEY_ID_FIELD.value, command.menu_item_id)
+        TagValMenuCommandProcessors._append_field(
+            buffer, TagValMenuFields.KEY_CHANGE_TYPE.value, command.change_type.value
+        )
+        if command.change_type == MenuChangeCommand.ChangeType.ABSOLUTE_LIST:
+            TagValMenuCommandProcessors._append_choices(buffer=buffer, entries=command.value)
+        else:
+            TagValMenuCommandProcessors._append_field(buffer, TagValMenuFields.KEY_CURRENT_VAL.value, command.value)
 
     @staticmethod
-    def _write_text_boot_item(buffer: io.StringIO, command: MenuCommand) -> None:
-        pass
+    def _write_text_boot_item(buffer: io.StringIO, command: MenuTextBootCommand) -> None:
+        TagValMenuCommandProcessors._write_common_boot_fields(buffer, command)
+        TagValMenuCommandProcessors._append_field(
+            buffer, TagValMenuFields.KEY_MAX_LENGTH.value, command.menu_item.text_length
+        )
+        TagValMenuCommandProcessors._append_field(
+            buffer, TagValMenuFields.KEY_EDIT_TYPE.value, command.menu_item.item_type.message_id
+        )
+        TagValMenuCommandProcessors._append_field(buffer, TagValMenuFields.KEY_CURRENT_VAL.value, command.current_value)
 
     @staticmethod
-    def _write_float_boot_item(buffer: io.StringIO, command: MenuCommand) -> None:
-        pass
+    def _write_float_boot_item(buffer: io.StringIO, command: MenuFloatBootCommand) -> None:
+        TagValMenuCommandProcessors._write_common_boot_fields(buffer, command)
+        TagValMenuCommandProcessors._append_field(
+            buffer, TagValMenuFields.KEY_FLOAT_DECIMAL_PLACES.value, command.menu_item.num_decimal_places
+        )
+        TagValMenuCommandProcessors._append_field(buffer, TagValMenuFields.KEY_CURRENT_VAL.value, command.current_value)
 
     @staticmethod
-    def _write_action_boot_item(buffer: io.StringIO, command: MenuCommand) -> None:
-        pass
+    def _write_action_boot_item(buffer: io.StringIO, command: MenuActionBootCommand) -> None:
+        TagValMenuCommandProcessors._write_common_boot_fields(buffer, command)
+        TagValMenuCommandProcessors._append_field(buffer, TagValMenuFields.KEY_CURRENT_VAL.value, "")
 
     @staticmethod
-    def _write_runtime_list_boot_item(buffer: io.StringIO, command: MenuCommand) -> None:
-        pass
+    def _write_runtime_list_boot_item(buffer: io.StringIO, command: MenuRuntimeListBootCommand) -> None:
+        TagValMenuCommandProcessors._write_common_boot_fields(buffer, command)
+        TagValMenuCommandProcessors._append_choices(buffer=buffer, entries=command.current_value)
 
     @staticmethod
-    def _write_runtime_rgb_color_item(buffer: io.StringIO, command: MenuCommand) -> None:
-        pass
+    def _write_runtime_rgb_color_item(buffer: io.StringIO, command: MenuRgb32BootCommand) -> None:
+        TagValMenuCommandProcessors._write_common_boot_fields(buffer, command)
+        TagValMenuCommandProcessors._append_field(
+            buffer, TagValMenuFields.KEY_ALPHA_FIELD.value, 1 if command.menu_item.include_alpha_channel else 0
+        )
+        TagValMenuCommandProcessors._append_field(buffer, TagValMenuFields.KEY_CURRENT_VAL.value, command.current_value)
 
     @staticmethod
-    def _write_runtime_scroll_choice(buffer: io.StringIO, command: MenuCommand) -> None:
-        pass
+    def _write_runtime_scroll_choice(buffer: io.StringIO, command: MenuScrollChoiceBootCommand) -> None:
+        TagValMenuCommandProcessors._write_common_boot_fields(buffer, command)
+        TagValMenuCommandProcessors._append_field(
+            buffer, TagValMenuFields.KEY_WIDTH_FIELD.value, command.menu_item.item_width
+        )
+        TagValMenuCommandProcessors._append_field(
+            buffer, TagValMenuFields.KEY_NO_OF_CHOICES.value, command.menu_item.num_entries
+        )
+        TagValMenuCommandProcessors._append_field(buffer, TagValMenuFields.KEY_CURRENT_VAL.value, command.current_value)
 
     @staticmethod
-    def _write_acknowledgement(buffer: io.StringIO, command: MenuCommand) -> None:
-        pass
+    def _write_acknowledgement(buffer: io.StringIO, command: MenuAcknowledgementCommand) -> None:
+        TagValMenuCommandProcessors._append_field(
+            buffer, TagValMenuFields.KEY_CORRELATION_FIELD.value, command.correlation_id
+        )
+        TagValMenuCommandProcessors._append_field(
+            buffer, TagValMenuFields.KEY_ACK_STATUS.value, command.ack_status.status_code
+        )
 
     @staticmethod
-    def _write_pairing_request(buffer: io.StringIO, command: MenuCommand) -> None:
-        pass
+    def _write_pairing_request(buffer: io.StringIO, command: MenuPairingCommand) -> None:
+        TagValMenuCommandProcessors._append_field(buffer, TagValMenuFields.KEY_NAME_FIELD.value, command.name)
+        TagValMenuCommandProcessors._append_field(buffer, TagValMenuFields.KEY_UUID_FIELD.value, command.uuid)
 
     @staticmethod
-    def _write_dialog_update(buffer: io.StringIO, command: MenuCommand) -> None:
-        pass
+    def _write_dialog_update(buffer: io.StringIO, command: MenuDialogCommand) -> None:
+        TagValMenuCommandProcessors._append_field(
+            buffer, TagValMenuFields.KEY_MODE_FIELD.value, command.dialog_mode.value
+        )
+        if command.header is not None:
+            TagValMenuCommandProcessors._append_field(buffer, TagValMenuFields.KEY_HEADER_FIELD.value, command.header)
+        if command.buffer is not None:
+            TagValMenuCommandProcessors._append_field(buffer, TagValMenuFields.KEY_BUFFER_FIELD.value, command.buffer)
+        TagValMenuCommandProcessors._append_field(
+            buffer, TagValMenuFields.KEY_BUTTON1_FIELD.value, command.button1.type_value
+        )
+        TagValMenuCommandProcessors._append_field(
+            buffer, TagValMenuFields.KEY_BUTTON2_FIELD.value, command.button2.type_value
+        )
+        TagValMenuCommandProcessors._append_field(
+            buffer, TagValMenuFields.KEY_CORRELATION_FIELD.value, command.correlation_id
+        )
+
+    @staticmethod
+    def _write_common_boot_fields(buffer: io.StringIO, command: BootItemMenuCommand):
+        TagValMenuCommandProcessors._append_field(
+            buffer, TagValMenuFields.KEY_PARENT_ID_FIELD.value, command.sub_menu_id
+        )
+        TagValMenuCommandProcessors._append_field(buffer, TagValMenuFields.KEY_ID_FIELD.value, command.menu_item.id)
+        TagValMenuCommandProcessors._append_field(
+            buffer, TagValMenuFields.KEY_EEPROM_FIELD.value, command.menu_item.eeprom_address
+        )
+        TagValMenuCommandProcessors._append_field(buffer, TagValMenuFields.KEY_NAME_FIELD.value, command.menu_item.name)
+        TagValMenuCommandProcessors._append_field(
+            buffer, TagValMenuFields.KEY_READONLY_FIELD.value, 1 if command.menu_item.read_only else 0
+        )
+        TagValMenuCommandProcessors._append_field(
+            buffer, TagValMenuFields.KEY_VISIBLE_FIELD.value, 1 if command.menu_item.visible else 0
+        )
+
+    @staticmethod
+    def _append_choices(buffer: io.StringIO, entries: tuple[str, ...]):
+        if entries is None:
+            TagValMenuCommandProcessors._append_field(buffer, TagValMenuFields.KEY_NO_OF_CHOICES.value, 0)
+        else:
+            TagValMenuCommandProcessors._append_field(buffer, TagValMenuFields.KEY_NO_OF_CHOICES.value, len(entries))
+            for i, entry in enumerate(entries):
+                TagValMenuCommandProcessors._append_field(
+                    buffer, TagValMenuFields.KEY_PREPEND_CHOICE.value + chr(65 + i), entry
+                )
+
+    @staticmethod
+    def _append_field(buffer: io.StringIO, key: str, value: Any):
+        if isinstance(value, str):
+            if "|" in value:
+                value = value.replace("|", "\\|")
+            if "=" in value:
+                value = value.replace("=", "\\=")
+
+        buffer.write(f"{key}={value}|")
