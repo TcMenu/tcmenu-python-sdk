@@ -54,7 +54,7 @@ class CommandFactory:
 
     @staticmethod
     def new_join_command(
-        name: str, uuid: Optional[UUID] = None, serial_number: Optional[int] = None
+        name: str, uuid: Optional[UUID] = None, serial_number: Optional[str] = None
     ) -> MenuJoinCommand:
         """
         Create a new join command. You can either provide a fixed UUID

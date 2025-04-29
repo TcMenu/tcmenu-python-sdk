@@ -17,7 +17,7 @@ class MenuJoinCommand(MenuCommand):
 
     app_uuid: uuid.UUID = uuid.uuid4()
 
-    serial_number: int = 999999999
+    serial_number: str = "999999999"
 
     @property
     def command_type(self) -> MessageField:

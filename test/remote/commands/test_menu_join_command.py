@@ -14,7 +14,7 @@ def test_menu_join_command_random_uuid():
     assert command.my_name == "Android Phone"
     assert type(command.api_version) == int
     assert command.platform == ApiPlatform.PYTHON_API
-    assert command.serial_number == 999999999
+    assert command.serial_number == "999999999"
 
 
 def test_menu_join_command_fixed_uuid():
@@ -28,11 +28,11 @@ def test_menu_join_command_fixed_uuid():
     assert command.my_name == "Android Phone"
     assert type(command.api_version) == int
     assert command.platform == ApiPlatform.PYTHON_API
-    assert command.serial_number == 999999999
+    assert command.serial_number == "999999999"
 
 
 def test_menu_join_command_custom_serial_number():
-    command = CommandFactory.new_join_command(name="Android Phone", serial_number=55441233)
+    command = CommandFactory.new_join_command(name="Android Phone", serial_number="55441233")
     assert isinstance(command.app_uuid, uuid.UUID)
     assert isinstance(command.command_type, MessageField) is True
     assert command.command_type.id == "NJ"
@@ -40,4 +40,4 @@ def test_menu_join_command_custom_serial_number():
     assert command.my_name == "Android Phone"
     assert type(command.api_version) == int
     assert command.platform == ApiPlatform.PYTHON_API
-    assert command.serial_number == 55441233
+    assert command.serial_number == "55441233"
